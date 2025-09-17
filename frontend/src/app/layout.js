@@ -1,5 +1,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import "./HeaderButton"
+import HeaderButton from "./HeaderButton";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -17,11 +19,17 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
+  console.log(`Someone logged in at ${new Date()}`)
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <header>
+          <div className="my-header">
+            <HeaderButton text={"About"} style={{ borderRadius: "0px 10px 10px 0px" }} myLink={"/"} />
+            <HeaderButton text={"Tables"} myLink={"/table"}/>
+            <HeaderButton text={"Home"} myLink={"/"}/>
+          </div>
+        </header>
         {children}
       </body>
     </html>

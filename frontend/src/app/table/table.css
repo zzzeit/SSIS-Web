@@ -1,0 +1,31 @@
+.my-table {
+    position: relative;
+    left: 50%;
+    right: 50%;
+    translate: -50% 0%;
+    background-color: aquamarine;
+    width: 1400px;
+    height: 800px;
+
+    display: block;
+}
+
+.my-table table {
+    width: 90%;
+    table-layout: fixed;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.my-table th {
+    background-color: #f2f2f2; /* A light gray background for the header */
+    color: #333;             /* Darker text color for contrast */
+    font-weight: bold;        /* Make the header text bold */
+    padding: 12px 15px;     /* Add some space (padding) inside the cells */
+    text-align: center;       /* Align the header text to the left */
+    border-bottom: 2px solid #ddd;
+}
+
+.my-table td {
+    text-align: center;
+}

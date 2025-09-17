@@ -1,0 +1,11 @@
+.header-button {
+    width: 120px;
+    height: 100%;
+    right: 0;
+    background-color: blueviolet;
+}
+
+.header-button:hover {
+    background-color: rebeccapurple;
+    cursor: pointer;
+}

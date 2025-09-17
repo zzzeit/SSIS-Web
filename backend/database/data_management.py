@@ -1,10 +1,5 @@
-import json
-import csv
-import os
 import sqlite3 as sql
 import datetime
-import tkinter as tk
-from tkinter import messagebox as tk_messagebox
 
 # COLLEGES
 CNAME_ = 0
@@ -31,7 +26,7 @@ def printTime(message):
 
 
 class DataManager:
-    def __init__(self, db_name='./database/database.db'):
+    def __init__(self, db_name='database/database.db'):
         self.db_name = db_name
         self.conn = sql.connect(self.db_name)
         self.cursor = self.conn.cursor()
