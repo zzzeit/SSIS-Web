@@ -8,6 +8,10 @@ app = Flask(__name__)
 def hello_world():
     return "Hello, World!"
 
+@app.route("/test")
+def test():
+    return "Test"
+
 # This part is optional but good practice to run the app
 if __name__ == "__main__":
     app.run(debug=True)
