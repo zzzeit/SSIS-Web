@@ -1,10 +1,10 @@
 import Image from "next/image";
-import TableButton from "./TableButton";
+import UCG from "./UnderConstructionGif";
 
 export default function Home() {
   return (
     <>
-      <TableButton/>
+      <UCG/>
     </>
   );
 }
