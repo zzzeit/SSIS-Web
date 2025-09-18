@@ -2,10 +2,14 @@
     width: 120px;
     height: 100%;
     right: 0;
-    background-color: blueviolet;
+    background-color: var(--background);
+    font-size: larger;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .header-button:hover {
-    background-color: rebeccapurple;
+    background-color: var(--ui-color);
     cursor: pointer;
 }

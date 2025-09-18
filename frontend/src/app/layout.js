@@ -25,12 +25,14 @@ export default function RootLayout({ children }) {
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <header>
           <div className="my-header">
-            <HeaderButton text={"About"} style={{ borderRadius: "0px 10px 10px 0px" }} myLink={"/"} />
+            <HeaderButton text={"About"} myLink={"/"} />
             <HeaderButton text={"Tables"} myLink={"/table"}/>
             <HeaderButton text={"Home"} myLink={"/"}/>
           </div>
         </header>
-        {children}
+        <main className="my-main">
+          {children}
+        </main>
       </body>
     </html>
   );
