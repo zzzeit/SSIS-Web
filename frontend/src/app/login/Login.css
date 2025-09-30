@@ -1,0 +1,32 @@
+.my-div {
+
+}
+
+.my-div div {
+    border-radius: 6px;
+    background-color: var(--color-background);
+}
+
+.my-div input {
+    background-color: #b9b9b9;
+    border-radius: 6px;
+    float: right;
+    min-width: 100px;
+    max-width: 150px;
+}
+
+.my-div form {
+    margin: auto;
+    width: 250px;
+    /* background-color: aqua; */
+}
+
+.login-div {
+    border: 2px dashed var(--border-color);
+    border-radius: 8px;
+    /* Longer dashes using border-image */
+    border-image: repeating-linear-gradient(90deg, var(--border-color) 0 20px, transparent 20px 32px) 1;
+}
+
+.my-form div{
+}
