@@ -1,0 +1,35 @@
+.insert {
+    background-color: var(--color-background);
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    margin-top: 20px;
+}
+
+.insert-header {
+    background-color: var(--border-color);
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.insert-header label {
+    font-family: 'Courier New', Courier, monospace;
+}
+
+.insert-inputs {
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 300px;
+    border: .1px dashed rgb(117, 117, 117);
+    border-radius: 7px;
+}
+
+.insert-inputs div {
+    margin-top: 10px;
+}
