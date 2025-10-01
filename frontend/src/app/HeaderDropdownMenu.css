@@ -1,0 +1,33 @@
+.menu button {
+    width: 120px;
+    height: 100%;
+    right: 0;
+    background-color: var(--background);
+    font-size: larger;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+
+.menu:hover button {
+    cursor: pointer;
+}
+
+.menu:hover .content {
+    display: block;
+}
+
+
+.content {
+    display: none;
+}
+.content a {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    border-left: 1px solid var(--border-color);
+    border-right: 1px solid var(--border-color);
+}
+.last-menu-item {
+    border-bottom: 1px solid var(--border-color);
+}

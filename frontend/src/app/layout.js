@@ -2,6 +2,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import "./HeaderButton"
 import HeaderButton from "./HeaderButton";
+import HeaderDropdownMenu from "./HeaderDropdownMenu";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,7 +27,8 @@ export default function RootLayout({ children }) {
         <header>
           <div className="my-header">
             <HeaderButton text={"About"} myLink={"/about"} />
-            <HeaderButton text={"Tables"} myLink={"/table"}/>
+            <HeaderDropdownMenu text={"Tables"} myLink={"/table"} />
+            {/* <HeaderButton text={"Tables"} myLink={"/table"}/> */}
             <HeaderButton text={"Home"} myLink={"/"}/>
           </div>
         </header>
