@@ -27,8 +27,7 @@ export default function RootLayout({ children }) {
         <header>
           <div className="my-header">
             <HeaderButton text={"About"} myLink={"/about"} />
-            <HeaderDropdownMenu text={"Tables"} myLink={"/table"} />
-            {/* <HeaderButton text={"Tables"} myLink={"/table"}/> */}
+            <HeaderDropdownMenu text={"Tables"} myLinks={["/table/colleges", "/table/programs", "/table"]} />
             <HeaderButton text={"Home"} myLink={"/"}/>
           </div>
         </header>
