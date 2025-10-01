@@ -1,11 +1,9 @@
 import './table.css'
 
 export default async function Table() {
-    const data = await fetch('http://127.0.0.1:5000/get/students')
-    const res = await data.json()
-    const myString = await JSON.stringify(res, null, 2)
+    // const data = await fetch('http://127.0.0.1:5000/get/students')
+    // const res = await data.json()
 
-    console.log(res)
 
     return (
     <>
@@ -24,7 +22,7 @@ export default async function Table() {
                 </thead>
 
                 <tbody>
-                    {res.map((student) => (
+                    {/* {res.map((student) => (
                         <tr key={student[3]} className='h-10'>
                             <td>{student[0]}</td>
                             <td>{student[1]}</td>
@@ -34,7 +32,7 @@ export default async function Table() {
                             <td>{student[5]}</td>
                             <td>{student[6]}</td>
                         </tr>
-                    ))}
+                    ))} */}
                 </tbody>
             </table>
         </div>
