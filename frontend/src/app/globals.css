@@ -50,6 +50,8 @@ body {
 }
 
 .my-main {
+  padding-top: 20px;
+  padding-bottom: 20px;
   border-left: 1px solid var(--border-color);
   border-right: 1px solid var(--border-color);
   min-height: 100%;
