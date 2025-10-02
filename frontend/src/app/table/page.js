@@ -1,8 +1,8 @@
 import './table.css'
 
 export default async function Table({ table_name="Table", headers=["header1", "header2", "header3"] }) {
-    // const data = await fetch('http://127.0.0.1:5000/get/students')
-    // const res = await data.json()
+    const data = await fetch('http://127.0.0.1:5000/get/colleges')
+    const res = await data.json()
 
 
     return (
@@ -29,17 +29,12 @@ export default async function Table({ table_name="Table", headers=["header1", "h
                 </thead>
 
                 <tbody>
-                    {/* {res.map((student) => (
-                        <tr key={student[3]} className='h-10'>
-                            <td>{student[0]}</td>
-                            <td>{student[1]}</td>
-                            <td>{student[2]}</td>
-                            <td>{student[3]}</td>
-                            <td>{student[4]}</td>
-                            <td>{student[5]}</td>
-                            <td>{student[6]}</td>
+                    {res.map((coll) => (
+                        <tr key={coll[0]} className='h-10'>
+                            <td>{coll[0]}</td>
+                            <td>{coll[1]}</td>
                         </tr>
-                    ))} */}
+                    ))}
                 </tbody>
             </table>
         </div>

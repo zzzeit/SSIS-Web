@@ -2,9 +2,9 @@ import Table from '../page'
 import './colleges.css'
 
 export default function Colleges() {
+
     return (
         <>
-            <Table table_name={"College Table"} headers={["Code", "Name"]} />
             <div className='insert'>
                 <div className='insert-header'>
                     <label>Insert College</label>
@@ -20,6 +20,8 @@ export default function Colleges() {
                     </div>
                 </div>
             </div>
+            
+            <Table table_name={"College Table"} headers={["Code", "Name"]} />
         </>
     )
 }
