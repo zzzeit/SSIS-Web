@@ -1,6 +1,7 @@
 from flask import Flask, jsonify
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.exc import IntegrityError
 
 # 2. Create an instance of the Flask class
 app = Flask(__name__)
@@ -26,9 +27,20 @@ with app.app_context():
 
 @app.route("/insert/college/<string:code>/<string:name>")
 def insertCollege(code, name):
-    college = College(code=code, name=name)
-    db.session.add(college)
-    db.session.commit()
+    try:
+        college = College(code=code, name=name)
+        db.session.add(college)
+        db.session.commit()
+        # Return the newly created object with a 201 Created status
+        return jsonify([college.code, college.name]), 201
+    except IntegrityError:
+        db.session.rollback()
+        return jsonify({"error": f"College with code '{code}' already exists."}), 409
+    except Exception as e:
+        db.session.rollback()
+        # It's a good idea to log the error here
+        print(f"An error occurred: {e}")
+        return jsonify({"error": "An unexpected error occurred on the server."}), 500
     
 @app.route("/get/colleges")
 def getColleges():
