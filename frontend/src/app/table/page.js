@@ -1,8 +1,10 @@
+"use client";
+import { useEffect } from 'react';
 import './table.css'
 
-export default async function Table({ table_name="Table", headers=["header1", "header2", "header3"] }) {
-    const data = await fetch('http://127.0.0.1:5000/get/colleges')
-    const res = await data.json()
+export default function Table({ table_name="Table", headers=["header1", "header2", "header3"], table_data=[] }) {
+    // const data = await fetch('http://127.0.0.1:5000/get/colleges');
+    // const res = await data.json();
 
 
     return (
@@ -29,7 +31,8 @@ export default async function Table({ table_name="Table", headers=["header1", "h
                 </thead>
 
                 <tbody>
-                    {res.map((coll) => (
+                    
+                    {table_data.map((coll) => (
                         <tr key={coll[0]} className='h-10'>
                             <td>{coll[0]}</td>
                             <td>{coll[1]}</td>

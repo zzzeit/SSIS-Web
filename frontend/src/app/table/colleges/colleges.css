@@ -32,3 +32,10 @@
 .insert-inputs div {
     margin-top: 10px;
 }
+
+.insert button {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    border-radius: 10px;
+    background-color: var(--color-emerald-700);
+}

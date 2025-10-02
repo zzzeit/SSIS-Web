@@ -1,27 +1,29 @@
+"use client";
+import { useEffect, useState } from 'react';
 import Table from '../page'
 import './colleges.css'
+import InsertCollegeForm from './InsertCollegeForm';
+
 
 export default function Colleges() {
+    const [table_data, set_table_data] = useState([]);
+
+    const fetchTableData = async () => {
+        const data = await fetch('http://127.0.0.1:5000/get/colleges');
+        const result = await data.json();
+        set_table_data(result);
+        console.log(`Fetching Data: ${result}`);
+    };
+
+    useEffect(() => {
+        fetchTableData();
+    }, [])
 
     return (
         <>
-            <div className='insert'>
-                <div className='insert-header'>
-                    <label>Insert College</label>
-                </div>
-                <div className='insert-inputs'>
-                    <div>
-                        <label>Code: </label>
-                        <input></input>
-                    </div>
-                    <div className='mb-[10px]'>
-                        <label>Name: </label>
-                        <input></input>
-                    </div>
-                </div>
-            </div>
+            <InsertCollegeForm fetchFunc={fetchTableData} />
             
-            <Table table_name={"College Table"} headers={["Code", "Name"]} />
+            <Table table_name={"College Table"} headers={["Code", "Name"]} table_data={table_data} />
         </>
     )
 }
