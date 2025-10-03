@@ -1,10 +1,5 @@
 "use client";
-import { useState } from 'react'
-
-function submitCollege(codeValue, nameValue) {
-    console.log("Submitting College");
-    fetch(`http://192.168.1.50:5000/insert/college/${codeValue}/${nameValue}`);
-}
+import './InsertForm.css'
 
 export default function InsertForm({ insert_form_name="Insert Form", fields=[["Field_1: ", null, null], ["Field_2: ", null, null], ["Field_3: ", null]], functions=[] }) {
     const submitButton = async () => {

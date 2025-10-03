@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useState } from 'react';
 import Table from '../page'
-import './colleges.css'
 import InsertForm from '../InsertForm'
 
 
