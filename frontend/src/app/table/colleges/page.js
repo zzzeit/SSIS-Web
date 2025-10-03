@@ -11,14 +11,14 @@ export default function Colleges() {
     const [table_data, set_table_data] = useState([]);
 
     const updateTableData = async () => {
+        console.log(`Fetching Data...`);
         const data = await fetch('http://192.168.1.50:5000/get/colleges');
         const result = await data.json();
         set_table_data(result);
-        console.log(`Fetching Data: ${result}`);
     };
 
     const submitForm = () => {
-        console.log("Submitting College");
+        console.log(`Submitting College [${college_code} | ${college_name}]`);
         fetch(`http://192.168.1.50:5000/insert/college/${college_code}/${college_name}`);
     };
 
