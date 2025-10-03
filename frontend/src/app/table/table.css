@@ -42,3 +42,8 @@
 .my-table td {
     text-align: center;
 }
+
+.my-table td:hover {
+    cursor: pointer;
+    background-color: var(--ui-color);
+}
