@@ -3,8 +3,6 @@ import { useEffect } from 'react';
 import './table.css'
 
 export default function Table({ table_name="Table", headers=["header1", "header2", "header3"], table_data=[] }) {
-    // const data = await fetch('http://127.0.0.1:5000/get/colleges');
-    // const res = await data.json();
 
 
     return (

@@ -9,7 +9,7 @@ export default function Colleges() {
     const [table_data, set_table_data] = useState([]);
 
     const fetchTableData = async () => {
-        const data = await fetch('http://127.0.0.1:5000/get/colleges');
+        const data = await fetch('http://192.168.1.50:5000/get/colleges');
         const result = await data.json();
         set_table_data(result);
         console.log(`Fetching Data: ${result}`);
