@@ -1,19 +1,22 @@
 "use client";
 import submitCollege from './submitCollege';
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 
 export default function InsertCollegeForm(props) {
     const submitFunc = async () => {
         await submitCollege(collegeCode, collegeName);
 
-        // Wait for 1 second (1000 milliseconds)
         await new Promise(resolve => setTimeout(resolve, 500));
 
         props.fetchFunc();
+        clearFields();
+    }
+    const clearFields = () =>{
+        setCollegeCode('');
+        setCollegeName('');
     }
     const [collegeCode, setCollegeCode] = useState('');
     const [collegeName, setCollegeName] = useState('');
-
     return (
         <>
             <div className='insert'>
