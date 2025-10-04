@@ -1,5 +1,6 @@
 "use client";
 import './InsertForm.css'
+import './InfoCard'
 
 export default function InsertForm({ insert_form_name="Insert Form", fields=[["Field_1: ", null, null], ["Field_2: ", null, null], ["Field_3: ", null]], functions=[] }) {
     const submitButton = async () => {

@@ -1,15 +1,20 @@
 "use client";
 import { useEffect } from 'react';
 import './table.css'
+import InsertForm from './InsertForm';
+import InfoCard from './InfoCard';
 
 export default function Table({ table_name="Table", headers=["header1", "header2", "header3"], table_data=[] }) {
 
 
     return (
     <>
+        <InfoCard />
+
         <div className='table-header'>
             <label>{table_name}</label>
         </div>
+
         <div className='my-table'>
             <table> 
                 <thead>
