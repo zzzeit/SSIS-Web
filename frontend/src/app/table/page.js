@@ -7,10 +7,11 @@ import InfoCard from './InfoCard';
 export default function Table({ table_name="Table", headers=["header1", "header2", "header3"], table_data=[] }) {
 
     const [visibleInfoCard, setVisibleInfoCard] = useState(false);
+    const [collegeValue, setCollegeValue] = useState([]);
 
     return (
     <>
-        <InfoCard visibility={[visibleInfoCard, setVisibleInfoCard]}/>
+        <InfoCard visibility={[visibleInfoCard, setVisibleInfoCard]} values={collegeValue} />
 
         <div className='table-header'>
             <label>{table_name}</label>
@@ -37,7 +38,7 @@ export default function Table({ table_name="Table", headers=["header1", "header2
                 <tbody>
                     
                     {table_data.map((coll) => (
-                        <tr key={coll[0]} className='h-10' onClick={() => {setVisibleInfoCard(true)}}>
+                        <tr key={coll[0]} className='h-10 college' onClick={() => {setVisibleInfoCard(true); setCollegeValue([coll[0], coll[1]]);}}>
                             <td>{coll[0]}</td>
                             <td>{coll[1]}</td>
                         </tr>

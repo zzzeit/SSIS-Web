@@ -3,9 +3,9 @@ import './InfoCard.css'
 import '../HeaderButton'
 import HeaderButton from '../HeaderButton';
 import Image from 'next/image';
-import { useState } from 'react';
+import InfoCardData from './InfoCardData';
 
-export default function InfoCard({visibility}) {
+export default function InfoCard({visibility, values}) {
 
     if (!visibility[0]) {
         return null;
@@ -28,6 +28,9 @@ export default function InfoCard({visibility}) {
                     </HeaderButton>
 
                 </div>
+
+                <InfoCardData text='Code: ' value={values[0]} />
+                <InfoCardData text='Name: ' value={values[1]} />
                 
             </div>
         </>
