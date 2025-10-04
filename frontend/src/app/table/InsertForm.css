@@ -1,5 +1,6 @@
 .insert {
-    background-color: var(--color-background);
+    /* background-color: var(--color-background); */
+    backdrop-filter: blur(3px);
     border-top: 1px solid var(--border-color);
     border-bottom: 1px solid var(--border-color);
 }
@@ -27,6 +28,7 @@
     max-width: 300px;
     border: .1px dashed rgb(117, 117, 117);
     border-radius: 7px;
+    background-color: var(--color-background);
 }
 
 .insert-inputs div {

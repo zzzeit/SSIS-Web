@@ -15,10 +15,13 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #202020;
+    --background_2: #2020201f;
+
     --foreground: #ffffff;
 
     --ui-color: #2b2b2b;
     --border-color: #3b3b3b;
+    --border-color-2: rgb(117, 117, 117);
   }
 }
 
