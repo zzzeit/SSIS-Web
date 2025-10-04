@@ -26,9 +26,13 @@ export default function RootLayout({ children }) {
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <header>
           <div className="my-header">
-            <HeaderButton text={"About"} myLink={"/about"} />
+            <HeaderButton text={"About"} myLink={"/about"}>
+              About
+            </HeaderButton>
             <HeaderDropdownMenu text={"Tables"} myLinks={["/table/colleges", "/table/programs", "/table"]} />
-            <HeaderButton text={"Home"} myLink={"/"}/>
+            <HeaderButton myLink={"/"}>
+              Home
+            </HeaderButton>
           </div>
         </header>
         <main className="my-main">
