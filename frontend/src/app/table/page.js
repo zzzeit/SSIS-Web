@@ -1,15 +1,16 @@
 "use client";
-import { useEffect } from 'react';
+import { useState } from 'react';
 import './table.css'
 import InsertForm from './InsertForm';
 import InfoCard from './InfoCard';
 
 export default function Table({ table_name="Table", headers=["header1", "header2", "header3"], table_data=[] }) {
 
+    const [visibleInfoCard, setVisibleInfoCard] = useState(false);
 
     return (
     <>
-        <InfoCard />
+        <InfoCard visibility={[visibleInfoCard, setVisibleInfoCard]}/>
 
         <div className='table-header'>
             <label>{table_name}</label>
@@ -36,7 +37,7 @@ export default function Table({ table_name="Table", headers=["header1", "header2
                 <tbody>
                     
                     {table_data.map((coll) => (
-                        <tr key={coll[0]} className='h-10'>
+                        <tr key={coll[0]} className='h-10' onClick={() => {setVisibleInfoCard(true)}}>
                             <td>{coll[0]}</td>
                             <td>{coll[1]}</td>
                         </tr>
