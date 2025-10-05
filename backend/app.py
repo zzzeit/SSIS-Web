@@ -25,6 +25,12 @@ class College(db.Model):
 with app.app_context():
     db.create_all()
 
+@app.route("/get/colleges")
+def getColleges():
+    colleges = College.query.all()
+    result = [[c.code, c.name] for c in colleges]
+    return jsonify(result)
+
 @app.route("/insert/college/<string:code>/<string:name>")
 def insertCollege(code, name):
     try:
@@ -42,13 +48,27 @@ def insertCollege(code, name):
         print(f"An error occurred: {e}")
         return jsonify({"error": "An unexpected error occurred on the server."}), 500
     
-@app.route("/get/colleges")
-def getColleges():
-    colleges = College.query.all()
-    result = [[c.code, c.name] for c in colleges]
-    return jsonify(result)
+@app.route("/delete/college/<string:code>")
+def deleteCollege(code):
+    try:
+        # Find the college by its primary key
+        college = College.query.get(code)
 
+        # If the college doesn't exist, return a 404 error
+        if college is None:
+            return jsonify({"error": f"College with code '{code}' not found."}), 404
 
+        # Delete the college object and commit the session
+        db.session.delete(college)
+        db.session.commit()
+
+        # Return a success message
+        return jsonify({"message": f"College with code '{code}' deleted successfully."}), 200
+
+    except Exception as e:
+        db.session.rollback()
+        print(f"An error occurred: {e}")
+        return jsonify({"error": "An unexpected error occurred on the server."}), 500
 
 # This part is optional but good practice to run the app
 if __name__ == "__main__":
