@@ -20,7 +20,7 @@ export default function InsertForm({ insert_form_name="Insert Form", fields=[["F
                 <div className='insert-inputs'>
 
                     {fields.map((f) => (
-                        <div key={f}>
+                        <div key={f[0]}>
                             <label>{f[0]}</label>
                             <input value={f[1]} onChange={(e) => f[2](e.target.value)}/>
                         </div>

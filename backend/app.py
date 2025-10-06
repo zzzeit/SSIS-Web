@@ -70,6 +70,25 @@ def deleteCollege(code):
         print(f"An error occurred: {e}")
         return jsonify({"error": "An unexpected error occurred on the server."}), 500
 
+@app.route("/edit/college/<string:oldCode>/<string:newCode>/<string:newName>")
+def editCollege(oldCode, newCode, newName):
+    try:
+        college = College.query.get(oldCode)
+        if college is None:
+            return jsonify({"error": f"College with code '{oldCode}' not found."}), 404
+
+        college.code = newCode
+        college.name = newName
+        db.session.commit()
+        return jsonify([college.code, college.name]), 200
+    except IntegrityError:
+        db.session.rollback()
+        return jsonify({"error": f"College with code '{newCode}' already exists."}), 409
+    except Exception as e:
+        db.session.rollback()
+        print(f"An error occurred: {e}")
+        return jsonify({"error": "An unexpected error occurred on the server."}), 500
+
 # This part is optional but good practice to run the app
 if __name__ == "__main__":
     # app.run(debug=True)

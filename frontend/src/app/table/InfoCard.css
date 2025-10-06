@@ -35,15 +35,36 @@
     flex-direction: row-reverse;
 }
 
-.info-card-data {
+.info-card-datas {
+    /* background-color: aliceblue; */
+    width: fit-content;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.info-card-data,
+.info-card-data-editable {
     /* background-color: brown; */
     width: fit-content;
     max-width: 500px;
     margin-left: auto;
-    margin-right: auto;
     margin-top: 10px;
 }
 
 .info-card-data input {
     width: 300px;
+}
+
+.info-card-data-editable input {
+    width: 300px;
+    border: 1px solid var(--border-color);
+}
+
+.submit-button {
+    display: block;
+    background-color: var(--color-emerald-700);
+    border-radius: 10px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 10px;
 }
