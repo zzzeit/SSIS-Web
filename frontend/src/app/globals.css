@@ -3,6 +3,14 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  --font-color: #101010;
+  --background_2: #2020201f;
+  --ui-color: #e1e1e1;
+  --border-color: #d9d9d9;
+  --border-color-2: rgb(117, 117, 117);
+
+  --svg-inverse: invert(0);
 }
 
 @theme inline {
@@ -15,13 +23,15 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #202020;
-    --background_2: #2020201f;
-
     --foreground: #ffffff;
 
+    --font-color: #ffffff;
+    --background_2: #2020201f;
     --ui-color: #2b2b2b;
     --border-color: #3b3b3b;
     --border-color-2: rgb(117, 117, 117);
+
+    --svg-inverse: invert(1);
   }
 }
 

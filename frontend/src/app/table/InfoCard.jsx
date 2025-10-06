@@ -18,6 +18,7 @@ export default function InfoCard({visibility, values, setValue, refreshFunc}) {
             console.log(d);
         }
         refreshFunc();
+        visibilityFunc();
     }
 
     const visibilityFunc = () => {
@@ -43,13 +44,13 @@ export default function InfoCard({visibility, values, setValue, refreshFunc}) {
             <div className="pop-up">
                 <div className='header-pop-up'>
                     <HeaderButton onClick={() => {visibilityFunc()}} style={{borderTopRightRadius: '10px', width: '45px'}}>
-                        <Image src='/close.svg' alt='Close' width={28} height={28} className='invert' />
+                        <Image src='/close.svg' alt='Close' width={28} height={28} style={{filter: 'var(--svg-inverse)'}} />
                     </HeaderButton>
                     <HeaderButton onClick={() => {deleteFunc();}} style={{width: '45px'}}>
-                        <Image src={'/trash.svg'} alt='Trash' width={28} height={28} className='invert' />
+                        <Image src={'/trash.svg'} alt='Trash' width={28} height={28} style={{filter: 'var(--svg-inverse)'}} />
                     </HeaderButton>
                     <HeaderButton onClick={() => {setCodeInput(values[0]);setNameInput(values[1]);setCanEdit(!canEdit);}} style={{width: '45px'}}>
-                        <Image src={'/edit.svg'} alt='Edit' width={28} height={28} className='invert' />
+                        <Image src={'/edit.svg'} alt='Edit' width={28} height={28} style={{filter: 'var(--svg-inverse)'}} />
                     </HeaderButton>
 
                 </div>
