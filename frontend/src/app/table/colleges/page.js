@@ -35,7 +35,7 @@ export default function Colleges() {
         <>
             <InsertForm fields={[["Code: ", college_code, set_college_code], ["Name: ", college_name, set_college_name]]} functions={[updateTableData, submitForm, clearFields]} />
             
-            <Table table_name={"College Table"} headers={["Code", "Name"]} table_data={table_data} />
+            <Table table_name={"College Table"} headers={["Code", "Name"]} table_data={table_data} refreshFunc={updateTableData} />
         </>
     )
 }

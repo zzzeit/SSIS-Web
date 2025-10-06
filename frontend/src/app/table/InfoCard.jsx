@@ -5,15 +5,16 @@ import HeaderButton from '../HeaderButton';
 import Image from 'next/image';
 import InfoCardData from './InfoCardData';
 
-export default function InfoCard({visibility, values}) {
+export default function InfoCard({visibility, values, refreshFunc}) {
 
     const deleteFunc = async () => {
         const isConfirm = window.confirm(`Are you sure you want to delete ${values[0]}?`);
 
         if (isConfirm) {
-            const d = await fetch(`http://localhost:5000/delete/college/${values[0]}`);
+            const d = await fetch(`http://192.168.1.50:5000/delete/college/${values[0]}`);
             console.log(d);
         }
+        refreshFunc();
     }
 
     if (!visibility[0]) {

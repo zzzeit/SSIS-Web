@@ -4,14 +4,14 @@ import './table.css'
 import InsertForm from './InsertForm';
 import InfoCard from './InfoCard';
 
-export default function Table({ table_name="Table", headers=["header1", "header2", "header3"], table_data=[] }) {
+export default function Table({ table_name="Table", headers=["header1", "header2", "header3"], table_data=[], refreshFunc }) {
 
     const [visibleInfoCard, setVisibleInfoCard] = useState(false);
     const [collegeValue, setCollegeValue] = useState([]);
 
     return (
     <>
-        <InfoCard visibility={[visibleInfoCard, setVisibleInfoCard]} values={collegeValue} />
+        <InfoCard visibility={[visibleInfoCard, setVisibleInfoCard]} values={collegeValue} refreshFunc={refreshFunc} />
 
         <div className='table-header'>
             <label>{table_name}</label>
