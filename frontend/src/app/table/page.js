@@ -1,10 +1,13 @@
 "use client";
 import { useState } from 'react';
 import './table.css'
-import InsertForm from './InsertForm';
 import InfoCard from './InfoCard';
+import HeaderButton from '../HeaderButton';
+import Image from 'next/image';
+import Lottie from 'lottie-react';
+import loadingIcon from './loading.json';
 
-export default function Table({ table_name="Table", headers=["header1", "header2", "header3"], table_data=[], refreshFunc }) {
+export default function Table({ table_name="Table", headers=["header1", "header2", "header3"], table_data=[], refreshFunc, displayRefresh, paginationFunctions=[] }) {
 
     const [visibleInfoCard, setVisibleInfoCard] = useState(false);
     const [collegeValue, setCollegeValue] = useState([]);
@@ -15,37 +18,85 @@ export default function Table({ table_name="Table", headers=["header1", "header2
 
         <div className='table-header'>
             <label>{table_name}</label>
+            {/* <HeaderButton className='inline right-auto'>
+                <Lottie animationData={serverIcon} style={{width: '40px',height: '40px'}} loop autoPlay />
+            </HeaderButton> */}
         </div>
 
-        <div className='my-table'>
-            <table> 
-                <thead>
-                    <tr>
-                        {/* <th>First Name</th>
-                        <th>Last Name</th>
-                        <th>Sex</th>
-                        <th>ID Number</th>
-                        <th>Year Level</th>
-                        <th>College</th>
-                        <th>Program</th> */}
+        <TableComponent headers={headers} table_data={table_data} setFunctions={[setVisibleInfoCard, setCollegeValue]} displayRefresh={displayRefresh} />
 
-                        {headers.map((header) => (
-                            <th key={header}>{header}</th>
-                        ))}
-                    </tr>
-                </thead>
-
-                <tbody>
-                    
-                    {table_data.map((coll) => (
-                        <tr key={coll[0]} className='h-10 college' onClick={() => {setVisibleInfoCard(true); setCollegeValue([coll[0], coll[1]]);}}>
-                            <td>{coll[0]}</td>
-                            <td>{coll[1]}</td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
-        </div>
+        <Pagination paginationFunctions={paginationFunctions} />
     </>
     )
+}
+
+
+function TableComponent({headers, table_data, setFunctions=[], displayRefresh}) {
+
+    return (
+        <>
+            <div className='my-table'>
+                
+                <RefreshDisplay display={displayRefresh} />
+                <table> 
+                    <thead>
+                        <tr>
+
+                            {headers.map((header) => (
+                                <th key={header}>{header}</th>
+                            ))}
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        
+                        {table_data.map((coll) => (
+                            <tr key={coll[0]} className='h-10 college' onClick={() => {setFunctions[0](true); setFunctions[1]([coll[0], coll[1]]);}}>
+                                <td>{coll[0]}</td>
+                                <td>{coll[1]}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        </>
+    );
+}
+
+function RefreshDisplay({display}) {
+    if (display) {
+        return (
+            <>
+            <div className='refresh-display'>
+                <Lottie animationData={loadingIcon} style={{width: 250, height: 250, filter: 'invert(1)'}} loop autoPlay speed={0.5} />
+            </div>
+            </>
+        );
+    }
+}
+
+function Pagination({paginationFunctions=[]}) {
+
+    return (
+        <>
+            <div className='footer'>
+
+                <div className='pagination'>
+                    <HeaderButton style={{width: '45px', borderTopLeftRadius: '10px', borderBottomLeftRadius: '10px'}} onClick={() => {paginationFunctions[1](parseInt(paginationFunctions[0]) - 1)}} >
+                        <Image src={"/arrow-left.svg"} alt='previous page' width={24} height={24} style={{filter: 'var(--svg-inverse)'}} />
+                    </HeaderButton>
+
+                    <div className='pagination-input'>
+                        <input className='w-7 text-center' value={paginationFunctions[0]} onChange={(e) => {paginationFunctions[1](e.target.value)}}/>
+                        <label>{` of ${paginationFunctions[2]}`}</label>
+                    </div>
+
+                    <HeaderButton style={{width: '45px', borderTopRightRadius: '10px', borderBottomRightRadius: '10px'}} onClick={() => {paginationFunctions[1](parseInt(paginationFunctions[0]) + 1)}}>
+                        <Image src={"/arrow-left.svg"} alt='next page' width={24} height={24} style={{filter: 'var(--svg-inverse)', transform: 'rotate(180deg)'}} />
+                    </HeaderButton>
+                </div>
+
+            </div>
+        </>
+    );
 }

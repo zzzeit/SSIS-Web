@@ -2,6 +2,8 @@ from flask import Flask, jsonify
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy import asc
+from math import ceil
 
 # 2. Create an instance of the Flask class
 app = Flask(__name__)
@@ -25,11 +27,13 @@ class College(db.Model):
 with app.app_context():
     db.create_all()
 
-@app.route("/get/colleges")
-def getColleges():
-    colleges = College.query.all()
+@app.route("/get/colleges/<int:page>")
+def getColleges(page):
+    colleges = College.query.order_by(asc(College.code)).offset((page - 1) * 14).limit(14).all()
+    total_colleges = College.query.count()
+    total_pages = ceil(total_colleges / 14)
     result = [[c.code, c.name] for c in colleges]
-    return jsonify(result)
+    return jsonify([result, total_pages])
 
 @app.route("/insert/college/<string:code>/<string:name>")
 def insertCollege(code, name):
