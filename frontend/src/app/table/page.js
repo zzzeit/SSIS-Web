@@ -85,16 +85,31 @@ function Pagination({paginationFunctions=[]}) {
             <div className='footer'>
 
                 <div className='pagination'>
-                    <HeaderButton style={{width: '45px', borderTopLeftRadius: '10px', borderBottomLeftRadius: '10px'}} onClick={() => {paginationFunctions[1](parseInt(paginationFunctions[0]) - 1)}} >
+                    <HeaderButton style={{width: '45px', borderTopLeftRadius: '10px', borderBottomLeftRadius: '10px'}} onClick={() => {
+                            if (
+                                paginationFunctions[0] !== undefined &&
+                                paginationFunctions[0] !== null &&
+                                !isNaN(parseInt(paginationFunctions[0]))
+                            ) {
+                                paginationFunctions[1](parseInt(paginationFunctions[0]) - 1);                   
+                            }                        }} >
                         <Image src={"/arrow-left.svg"} alt='previous page' width={24} height={24} style={{filter: 'var(--svg-inverse)'}} />
                     </HeaderButton>
 
                     <div className='pagination-input'>
-                        <input className='w-7 text-center' value={paginationFunctions[0]} onChange={(e) => {paginationFunctions[1](e.target.value)}}/>
+                        <input className='w-7 text-center' value={paginationFunctions[0]} onChange={(e) => {paginationFunctions[1](e.target.value)}} />
                         <label>{` of ${paginationFunctions[2]}`}</label>
                     </div>
 
-                    <HeaderButton style={{width: '45px', borderTopRightRadius: '10px', borderBottomRightRadius: '10px'}} onClick={() => {paginationFunctions[1](parseInt(paginationFunctions[0]) + 1)}}>
+                    <HeaderButton style={{width: '45px', borderTopRightRadius: '10px', borderBottomRightRadius: '10px'}} onClick={() => {
+                            if (
+                                paginationFunctions[0] !== undefined &&
+                                paginationFunctions[0] !== null &&
+                                !isNaN(parseInt(paginationFunctions[0]))
+                            ) {
+                                paginationFunctions[1](parseInt(paginationFunctions[0]) + 1);                   
+                            }
+                        }}>
                         <Image src={"/arrow-left.svg"} alt='next page' width={24} height={24} style={{filter: 'var(--svg-inverse)', transform: 'rotate(180deg)'}} />
                     </HeaderButton>
                 </div>

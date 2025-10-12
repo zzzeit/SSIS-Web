@@ -24,10 +24,17 @@ export default function Colleges() {
     };
 
     useEffect(() => {
+        setDisplayRefresh(false);
         if (page > maxPage) {
             setPage(maxPage);
+        } else if (page === 0) {
+            setPage(1);
+        } else if (page < 0) {
+            setPage(1);
+        } else {
+            updateTableData();
         }
-        updateTableData();
+
     }, [page]);
 
     const submitForm = () => {
