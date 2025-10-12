@@ -41,7 +41,7 @@ function TableComponent({headers, table_data, setFunctions=[], displayRefresh}) 
                 <table> 
                     <thead>
                         <tr>
-
+                            <th style={{width: '50px'}}>#</th>
                             {headers.map((header) => (
                                 <th key={header}>{header}</th>
                             ))}
@@ -50,8 +50,11 @@ function TableComponent({headers, table_data, setFunctions=[], displayRefresh}) 
 
                     <tbody>
                         
-                        {table_data.map((coll) => (
+                        {table_data.map((coll, index) => (
                             <tr key={coll[0]} className='h-10 college' onClick={() => {setFunctions[0](true); setFunctions[1]([coll[0], coll[1]]);}}>
+                                
+                                <td>{index + 1}</td>
+
                                 <td>{coll[0]}</td>
                                 <td>{coll[1]}</td>
                             </tr>
