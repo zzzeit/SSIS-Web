@@ -12,19 +12,31 @@ export default function Colleges() {
     const [displayRefresh, setDisplayRefresh] = useState(false);
     const [page, setPage] = useState(1);
     const [maxPage, setMaxPage] = useState(1);
+    const [ascending, setAscending] = useState(1);
+    const [searchValue, setSearchValue] = useState('');
+    const [searchBy, setSearchBy] = useState('code');
 
     const updateTableData = async () => {
         setDisplayRefresh(true);
         console.log(`Fetching Data...`);
-        const data = await fetch(`http://192.168.1.50:5000/get/colleges/${page}`);
+        let link = `http://192.168.1.50:5000/search/colleges/${searchBy}/${searchValue}/${page}/${ascending}`;
+        if (searchValue === '') {
+            link = `http://192.168.1.50:5000/get/colleges/${page}/${ascending}`;
+        }
+        const data = await fetch(link);
         const result = await data.json();
         set_table_data(result[0]);
         setMaxPage(result[1]);
         setDisplayRefresh(false);
     };
 
+
+    const submitForm = () => {
+        console.log(`Submitting College [${college_code} | ${college_name}]`);
+        fetch(`http://192.168.1.50:5000/insert/college/${college_code}/${college_name}`);
+    };
+
     useEffect(() => {
-        setDisplayRefresh(false);
         if (page > maxPage) {
             setPage(maxPage);
         } else if (page === 0) {
@@ -37,22 +49,31 @@ export default function Colleges() {
 
     }, [page]);
 
-    const submitForm = () => {
-        console.log(`Submitting College [${college_code} | ${college_name}]`);
-        fetch(`http://192.168.1.50:5000/insert/college/${college_code}/${college_name}`);
-    };
+    useEffect(() => {
+        setPage(1);
+        updateTableData();
+
+    }, [searchValue]);
+
+    useEffect(() => {
+        updateTableData();
+        
+    }, [ascending]);
+
+    useEffect(() => {
+        updateTableData();
+    }, [searchBy]);
 
     const clearFields = () => {
         set_college_code('');
         set_college_name('');
     };
 
-
     return (
         <>
             <InsertForm fields={[["Code: ", college_code, set_college_code], ["Name: ", college_name, set_college_name]]} functions={[updateTableData, submitForm, clearFields]} />
             
-            <Table table_name={"College Table"} headers={["Code", "Name"]} table_data={table_data} refreshFunc={updateTableData} displayRefresh={displayRefresh} paginationFunctions={[page, setPage, maxPage]} />
+            <Table table_name={"College Table"} headers={["Code", "Name"]} table_data={table_data} refreshFunc={updateTableData} displayRefresh={displayRefresh} paginationFunctions={[page, setPage, maxPage]} searchFuncs={[ascending, setAscending, searchValue, setSearchValue, searchBy, setSearchBy]} />
         </>
     )
 }

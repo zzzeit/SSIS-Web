@@ -2,7 +2,7 @@ from flask import Flask, jsonify
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy import asc
+from sqlalchemy import asc, desc
 from math import ceil
 
 # 2. Create an instance of the Flask class
@@ -27,9 +27,12 @@ class College(db.Model):
 with app.app_context():
     db.create_all()
 
-@app.route("/get/colleges/<int:page>")
-def getColleges(page):
-    colleges = College.query.order_by(asc(College.code)).offset((page - 1) * 14).limit(14).all()
+@app.route("/get/colleges/<int:page>/<int:ascending>")
+def getColleges(page, ascending):
+    order = desc(College.code)
+    if ascending == 1:
+        order = asc(College.code)
+    colleges = College.query.order_by(order).offset((page - 1) * 14).limit(14).all()
     total_colleges = College.query.count()
     total_pages = ceil(total_colleges / 14)
     result = [[c.code, c.name] for c in colleges]
@@ -92,6 +95,35 @@ def editCollege(oldCode, newCode, newName):
         db.session.rollback()
         print(f"An error occurred: {e}")
         return jsonify({"error": "An unexpected error occurred on the server."}), 500
+
+# In backend/app.py
+
+@app.route("/search/colleges/<string:attribute>/<string:value>/<int:page>/<int:ascending>")
+def searchCollege(value, attribute, page, ascending):
+    search_pattern = f"%{value}%"
+
+    # 1. Build the base query with the filter
+    if attribute == 'name':
+        base_query = College.query.filter(College.name.ilike(search_pattern))
+    elif attribute == 'code':
+        base_query = College.query.filter(College.code.ilike(search_pattern))
+    else:
+        return jsonify({"error": f"Searching by attribute '{attribute}' is not supported."}), 400
+
+    # 2. Get the total count from the base query
+    total_results = base_query.count()
+    total_pages = ceil(total_results / 14) # Assuming 14 items per page
+
+    # 3. Apply sorting and pagination to the base query
+    order = desc(College.code) if ascending == 0 else asc(College.code)
+    
+    paginated_results = base_query.order_by(order).offset((page - 1) * 14).limit(14).all()
+
+    # 4. Format the results for the current page
+    formatted_results = [[c.code, c.name] for c in paginated_results]
+
+    # 5. Return both the paginated data and the total page count
+    return jsonify([formatted_results, total_pages])
 
 # This part is optional but good practice to run the app
 if __name__ == "__main__":

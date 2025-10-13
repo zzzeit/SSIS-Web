@@ -6,8 +6,9 @@ import HeaderButton from '../HeaderButton';
 import Image from 'next/image';
 import Lottie from 'lottie-react';
 import loadingIcon from './loading.json';
+import Button from '../Button';
 
-export default function Table({ table_name="Table", headers=["header1", "header2", "header3"], table_data=[], refreshFunc, displayRefresh, paginationFunctions=[] }) {
+export default function Table({ table_name="Table", headers=["header1", "header2", "header3"], table_data=[], refreshFunc, displayRefresh, paginationFunctions=[], searchFuncs=[] }) {
 
     const [visibleInfoCard, setVisibleInfoCard] = useState(false);
     const [collegeValue, setCollegeValue] = useState([]);
@@ -23,6 +24,8 @@ export default function Table({ table_name="Table", headers=["header1", "header2
             </HeaderButton> */}
         </div>
 
+        <SearchBarComponent funcs={searchFuncs} />
+
         <TableComponent headers={headers} table_data={table_data} setFunctions={[setVisibleInfoCard, setCollegeValue]} displayRefresh={displayRefresh} />
 
         <Pagination paginationFunctions={paginationFunctions} />
@@ -30,6 +33,29 @@ export default function Table({ table_name="Table", headers=["header1", "header2
     )
 }
 
+function SearchBarComponent({funcs=[]}) {
+
+    return (
+        <>
+            <div className='search-div'>
+                <Button className='search-button' ascending={funcs[0]}>
+                    <Image src={'/sort.svg'} alt='sort button' width={25} height={25} style={{ filter: 'invert(1)' }} onClick={() => {
+                        funcs[1](funcs[0] === 1 ? 0 : 1)
+                    }} />
+                </Button>
+
+                <select onChange={(e) => {funcs[5](e.target.value)}}>
+                    <option value='code'>Code</option>
+                    <option value='name'>Name</option>
+                </select>
+
+                <input placeholder='Search' onChange={(e) => {
+                    funcs[3](e.target.value)
+                }} />
+            </div>
+        </>
+    );
+}
 
 function TableComponent({headers, table_data, setFunctions=[], displayRefresh}) {
 
@@ -92,7 +118,8 @@ function Pagination({paginationFunctions=[]}) {
                                 !isNaN(parseInt(paginationFunctions[0]))
                             ) {
                                 paginationFunctions[1](parseInt(paginationFunctions[0]) - 1);                   
-                            }                        }} >
+                            }                        
+                        }} >
                         <Image src={"/arrow-left.svg"} alt='previous page' width={24} height={24} style={{filter: 'var(--svg-inverse)'}} />
                     </HeaderButton>
 
