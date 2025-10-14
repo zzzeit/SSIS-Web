@@ -24,7 +24,7 @@ export default function Table({ table_name="Table", headers=["header1", "header2
             </HeaderButton> */}
         </div>
 
-        <SearchBarComponent funcs={searchFuncs} />
+        <SearchBarComponent headers={headers} funcs={searchFuncs} />
 
         <TableComponent headers={headers} table_data={table_data} setFunctions={[setVisibleInfoCard, setCollegeValue]} displayRefresh={displayRefresh} paginationFunctions={paginationFunctions} />
 
@@ -33,7 +33,7 @@ export default function Table({ table_name="Table", headers=["header1", "header2
     )
 }
 
-function SearchBarComponent({funcs=[]}) {
+function SearchBarComponent({headers=[], funcs=[]}) {
 
     return (
         <>
@@ -45,8 +45,9 @@ function SearchBarComponent({funcs=[]}) {
                 </Button>
 
                 <select onChange={(e) => {funcs[5](e.target.value)}}>
-                    <option value='code'>Code</option>
-                    <option value='name'>Name</option>
+                    {headers.map((att) => (
+                        <option key={att} value={att}>{att}</option>
+                    ))}
                 </select>
 
                 <input placeholder='Search' onChange={(e) => {
@@ -76,16 +77,18 @@ function TableComponent({headers, table_data, setFunctions=[], displayRefresh, p
 
                     <tbody>
                         
-                        {table_data.map((coll, index) => (
-                            <tr key={coll[0]} className='h-10 college' onClick={() => {
-                                setFunctions[1]([coll[0], coll[1]]);
+                        {table_data.map((row, index) => (
+                            <tr key={row[0] || index} className='h-10 college' onClick={() => {
+                                // Pass the entire row array to the InfoCard
+                                setFunctions[1](row);
                                 setFunctions[0](true); 
                             }}>
                                 
                                 <td>{(index + 1) + ((paginationFunctions[0] - 1) * 14)}</td>
 
-                                <td>{coll[0]}</td>
-                                <td>{coll[1]}</td>
+                                {row.map((cell, cellIndex) => (
+                                    <td key={cellIndex}>{cell}</td>
+                                ))}
                             </tr>
                         ))}
                     </tbody>
