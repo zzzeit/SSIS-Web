@@ -2,19 +2,19 @@
 import './InfoCard.css'
 import HeaderButton from '../HeaderButton';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
-export default function InfoCard({visibility, values, setValue, refreshFunc}) {
+export default function InfoCard({visibility, valueFuncs=[], refreshFunc}) {
     const [canEdit, setCanEdit] = useState(false);
 
     const [codeInput, setCodeInput] = useState('');
     const [nameInput, setNameInput] = useState('');
 
     const deleteFunc = async () => {
-        const isConfirm = window.confirm(`Are you sure you want to delete ${values[0]}?`);
+        const isConfirm = window.confirm(`Are you sure you want to delete ${valueFuncs[0][0]}?`);
 
         if (isConfirm) {
-            const d = await fetch(`http://192.168.1.50:5000/delete/college/${values[0]}`);
+            const d = await fetch(`http://192.168.1.50:5000/delete/college/${valueFuncs[0][0]}`);
             console.log(d);
         }
         refreshFunc();
@@ -24,16 +24,24 @@ export default function InfoCard({visibility, values, setValue, refreshFunc}) {
     const visibilityFunc = () => {
         visibility[1](false);
         setCanEdit(false);
+
+        setCodeInput('');
+        setNameInput('');
     };
 
     const submitEditButton = async () => {
-        console.log(`Changing college ${values[0]} into ${codeInput} - ${nameInput}`)
-        await fetch(`http://192.168.1.50:5000/edit/college/${values[0]}/${codeInput}/${nameInput}`);
+        console.log(`Changing college ${valueFuncs[0][0]} into ${codeInput} - ${nameInput}`)
+        await fetch(`http://192.168.1.50:5000/edit/college/${valueFuncs[0][0]}/${codeInput}/${nameInput}`);
         refreshFunc();
         visibilityFunc();
     };
 
-    if (!visibility[0]) {
+    useEffect(() => {
+        setCodeInput(valueFuncs[0][0]);
+        setNameInput(valueFuncs[0][1]);
+    }, [valueFuncs[0]]);
+
+    if (!visibility[0] || valueFuncs.length === 0) {
         return null;
     }
 
@@ -49,26 +57,30 @@ export default function InfoCard({visibility, values, setValue, refreshFunc}) {
                     <HeaderButton onClick={() => {deleteFunc();}} style={{width: '45px'}}>
                         <Image src={'/trash.svg'} alt='Trash' width={28} height={28} style={{filter: 'var(--svg-inverse)'}} />
                     </HeaderButton>
-                    <HeaderButton onClick={() => {setCodeInput(values[0]);setNameInput(values[1]);setCanEdit(!canEdit);}} style={{width: '45px'}}>
+                    <HeaderButton onClick={() => {
+                        setCodeInput(valueFuncs[0][0]);
+                        setNameInput(valueFuncs[0][1]);
+                        setCanEdit(!canEdit);
+                    }} style={{width: '45px'}}>
                         <Image src={'/edit.svg'} alt='Edit' width={28} height={28} style={{filter: 'var(--svg-inverse)'}} />
                     </HeaderButton>
 
                 </div>
 
-                <InfoCardDatas values={values} setFuncs={[setCodeInput, setNameInput]} canEdit={canEdit} submitButtonFunc={submitEditButton} />
+                <InfoCardDatas valueFuncs={valueFuncs} inputFuncs={[codeInput, setCodeInput, nameInput, setNameInput]} canEdit={canEdit} submitButtonFunc={submitEditButton} />
                 
             </div>
         </>
     );
 }
 
-function InfoCardDatas({values, setFuncs, canEdit, submitButtonFunc}) {
+function InfoCardDatas({valueFuncs=[], inputFuncs=[], canEdit, submitButtonFunc}) {
     
     return (
         <>
             <div className='info-card-datas'>
-                <InfoCardData text='Code: ' value={values[0]} setFunc={setFuncs[0]} canEdit={canEdit} />
-                <InfoCardData text='Name: ' value={values[1]} setFunc={setFuncs[1]} canEdit={canEdit} />
+                <InfoCardData text='Code: ' inputValue={inputFuncs[0]} setInputFuncs={inputFuncs[1]} canEdit={canEdit} />
+                <InfoCardData text='Name: ' inputValue={inputFuncs[2]} setInputFuncs={inputFuncs[3]} canEdit={canEdit} />
             </div>
 
             {canEdit && <button onClick={submitButtonFunc} className='submit-button'>Done</button>}
@@ -77,7 +89,7 @@ function InfoCardDatas({values, setFuncs, canEdit, submitButtonFunc}) {
     );
 }
 
-function InfoCardData({text='Label: ', value='None', setFunc, canEdit}) {
+function InfoCardData({text='Label: ', inputValue='None', setInputFuncs, canEdit}) {
     let classVar = 'info-card-data';
     if (canEdit) {
         classVar = 'info-card-data-editable';
@@ -86,7 +98,7 @@ function InfoCardData({text='Label: ', value='None', setFunc, canEdit}) {
         <>
             <div className={classVar}>
                 <label>{text}</label>
-                <input defaultValue={value} onChange={(e) => {setFunc(e.target.value)}} readOnly={!canEdit} />
+                <input value={inputValue} onChange={(e) => {setInputFuncs(e.target.value)}} readOnly={!canEdit} />
             </div>
         </>
     );

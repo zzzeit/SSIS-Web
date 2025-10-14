@@ -15,7 +15,7 @@ export default function Table({ table_name="Table", headers=["header1", "header2
 
     return (
     <>
-        <InfoCard visibility={[visibleInfoCard, setVisibleInfoCard]} values={collegeValue} setValue={setCollegeValue} refreshFunc={refreshFunc} />
+        <InfoCard visibility={[visibleInfoCard, setVisibleInfoCard]} valueFuncs={[collegeValue, setCollegeValue]} setValue={setCollegeValue} refreshFunc={refreshFunc} />
 
         <div className='table-header'>
             <label>{table_name}</label>
@@ -77,7 +77,10 @@ function TableComponent({headers, table_data, setFunctions=[], displayRefresh, p
                     <tbody>
                         
                         {table_data.map((coll, index) => (
-                            <tr key={coll[0]} className='h-10 college' onClick={() => {setFunctions[0](true); setFunctions[1]([coll[0], coll[1]]);}}>
+                            <tr key={coll[0]} className='h-10 college' onClick={() => {
+                                setFunctions[1]([coll[0], coll[1]]);
+                                setFunctions[0](true); 
+                            }}>
                                 
                                 <td>{(index + 1) + ((paginationFunctions[0] - 1) * 14)}</td>
 
