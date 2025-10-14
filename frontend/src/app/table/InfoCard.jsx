@@ -33,15 +33,28 @@ export default function InfoCard({ table_name='', visibility, headers = [], valu
 
     const submitEditButton = async () => {
         const oldCode = valueFuncs[0]?.[0];
-        // Assuming the first two values are the new code and name for the API
-        const [newCode, newName] = inputValues;
+        if (!oldCode) return;
 
-        if (!oldCode || !newCode || !newName) return;
+        // 1. Use the whole inputValues array, not just the first two items.
+        const newValues = inputValues;
 
-        console.log(`Changing college ${oldCode} into ${newCode} - ${newName}`);
-        const isConfirm = window.confirm(`Are you sure you want to edit ${oldCode} into ${newCode} - ${newName}?`);
+        // 2. Basic validation to ensure no fields are empty.
+        if (newValues.some(val => !val || String(val).trim() === '')) {
+            window.alert("All fields must be filled out before submitting.");
+            return;
+        }
+
+        // 3. Dynamically create the URL path from all the new values.
+        const newValuesPath = newValues.join('/');
+
+        // 4. Make the confirmation message more generic.
+        const isConfirm = window.confirm(`Are you sure you want to save these changes for item ${oldCode}?`);
         if (isConfirm) {
-            const response = await fetch(`http://192.168.1.50:5000/edit/${table_name}/${oldCode}/${newCode}/${newName}`);
+            // 5. Construct the final URL dynamically.
+            const url = `http://192.168.1.50:5000/edit/${table_name}/${oldCode}/${newValuesPath}`;
+            console.log("Submitting edit request to:", url);
+
+            const response = await fetch(url);
             if (response.ok) {
                 refreshFunc();
                 visibilityFunc();

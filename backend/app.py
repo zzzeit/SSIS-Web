@@ -252,6 +252,41 @@ def deleteProgram(code):
         print(f"An error occurred while deleting program: {e}")
         return jsonify({"error": "An unexpected error occurred on the server."}), 500
 
+@app.route("/edit/program/<string:oldCode>/<string:newCode>/<string:newName>/<string:newCollege>")
+def editProgram(oldCode, newCode, newName, newCollege):
+    try:
+        # Find the program to be edited
+        program = Program.query.get(oldCode)
+        if program is None:
+            return jsonify({"error": f"Program with code '{oldCode}' not found."}), 404
+
+        # Proactively check if the new college exists before trying to update
+        college_exists = College.query.get(newCollege)
+        if not college_exists:
+            return jsonify({"error": f"Cannot update program. College with code '{newCollege}' does not exist."}), 400
+
+        # Update the program's attributes
+        program.code = newCode
+        program.name = newName
+        program.college = newCollege
+        
+        # Commit the changes to the database
+        db.session.commit()
+        
+        # Return the updated data with a 200 OK status
+        return jsonify([program.code, program.name, program.college]), 200
+
+    except IntegrityError:
+        # This error will be caught if the newCode already exists in the program table
+        db.session.rollback()
+        return jsonify({"error": f"Program with code '{newCode}' already exists."}), 409
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"An error occurred while editing program: {e}")
+        return jsonify({"error": "An unexpected error occurred on the server."}), 500
+
+
 if __name__ == "__main__":
     # app.run(debug=True)
     app.run(host='0.0.0.0', port=5000, debug=True)
