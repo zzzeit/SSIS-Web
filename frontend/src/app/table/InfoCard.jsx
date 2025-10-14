@@ -4,100 +4,123 @@ import HeaderButton from '../HeaderButton';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 
-export default function InfoCard({visibility, valueFuncs=[], refreshFunc}) {
+export default function InfoCard({ visibility, headers = [], valueFuncs = [], refreshFunc }) {
     const [canEdit, setCanEdit] = useState(false);
-
-    const [codeInput, setCodeInput] = useState('');
-    const [nameInput, setNameInput] = useState('');
+    const [inputValues, setInputValues] = useState([]);
 
     const deleteFunc = async () => {
-        const isConfirm = window.confirm(`Are you sure you want to delete ${valueFuncs[0][0]}?`);
+        const oldCode = valueFuncs[0]?.[0];
+        if (!oldCode) return;
+
+        const isConfirm = window.confirm(`Are you sure you want to delete ${oldCode}?`);
         if (isConfirm) {
-            const response = await fetch(`http://192.168.1.50:5000/delete/college/${valueFuncs[0][0]}`);
-            if (response.status === 200) {
+            const response = await fetch(`http://192.168.1.50:5000/delete/college/${oldCode}`);
+            if (response.ok) {
                 refreshFunc();
                 visibilityFunc();
             } else {
                 const errorData = await response.json();
-                window.alert(errorData.error || `An unknown error has occured. STATUS ${response.status}`);
+                window.alert(errorData.error || `An unknown error has occurred. STATUS ${response.status}`);
             }
-
         }
     }
 
     const visibilityFunc = () => {
         visibility[1](false);
         setCanEdit(false);
-
-        setCodeInput('');
-        setNameInput('');
+        setInputValues([]);
     };
 
     const submitEditButton = async () => {
-        console.log(`Changing college ${valueFuncs[0][0]} into ${codeInput} - ${nameInput}`)
-        const isConfirm = window.confirm(`Are you sure you want to edit ${valueFuncs[0][0]} into ${codeInput} - ${nameInput}?`);
+        const oldCode = valueFuncs[0]?.[0];
+        // Assuming the first two values are the new code and name for the API
+        const [newCode, newName] = inputValues;
+
+        if (!oldCode || !newCode || !newName) return;
+
+        console.log(`Changing college ${oldCode} into ${newCode} - ${newName}`);
+        const isConfirm = window.confirm(`Are you sure you want to edit ${oldCode} into ${newCode} - ${newName}?`);
         if (isConfirm) {
-            const response = await fetch(`http://192.168.1.50:5000/edit/college/${valueFuncs[0][0]}/${codeInput}/${nameInput}`);
-            if (response.status === 200) {
+            const response = await fetch(`http://192.168.1.50:5000/edit/college/${oldCode}/${newCode}/${newName}`);
+            if (response.ok) {
                 refreshFunc();
-                visibilityFunc();       
+                visibilityFunc();
             } else {
                 const errorData = await response.json();
-                window.alert(errorData.error || `An unknown error has occured. STATUS ${response.status}`);
+                window.alert(errorData.error || `An unknown error has occurred. STATUS ${response.status}`);
             }
         }
-
     };
 
+    // 2. Update the effect to populate the inputValues array from the prop
     useEffect(() => {
-        setCodeInput(valueFuncs[0][0]);
-        setNameInput(valueFuncs[0][1]);
-    }, [valueFuncs[0]]);
+        // Ensure valueFuncs and its first element exist before setting state
+        if (valueFuncs.length > 0 && valueFuncs[0]) {
+            setInputValues(valueFuncs[0]);
+        }
+    }, [valueFuncs]); // Depend on the whole array
 
-    if (!visibility[0] || valueFuncs.length === 0) {
+    if (!visibility[0] || !valueFuncs[0] || valueFuncs[0].length === 0) {
         return null;
     }
 
+    // 3. Helper function to update a specific input value in the array
+    const handleInputChange = (index, value) => {
+        const newValues = [...inputValues];
+        newValues[index] = value;
+        setInputValues(newValues);
+    };
+
     return (
         <>
-            <div className="bg-pop-up" onClick={() => {visibilityFunc()}} />
+            <div className="bg-pop-up" onClick={visibilityFunc} />
 
             <div className="pop-up">
                 <div className='header-pop-up'>
-                    <HeaderButton onClick={() => {visibilityFunc()}} style={{borderTopRightRadius: '10px', width: '45px'}}>
-                        <Image src='/close.svg' alt='Close' width={28} height={28} style={{filter: 'var(--svg-inverse)'}} />
+                    <HeaderButton onClick={visibilityFunc} style={{ borderTopRightRadius: '10px', width: '45px' }}>
+                        <Image src='/close.svg' alt='Close' width={28} height={28} style={{ filter: 'var(--svg-inverse)' }} />
                     </HeaderButton>
-                    <HeaderButton onClick={() => {deleteFunc();}} style={{width: '45px'}}>
-                        <Image src={'/trash.svg'} alt='Trash' width={28} height={28} style={{filter: 'var(--svg-inverse)'}} />
+                    <HeaderButton onClick={deleteFunc} style={{ width: '45px' }}>
+                        <Image src={'/trash.svg'} alt='Trash' width={28} height={28} style={{ filter: 'var(--svg-inverse)' }} />
                     </HeaderButton>
                     <HeaderButton onClick={() => {
-                        setCodeInput(valueFuncs[0][0]);
-                        setNameInput(valueFuncs[0][1]);
+                        // Reset inputs to original values when toggling edit mode
+                        setInputValues(valueFuncs[0]);
                         setCanEdit(!canEdit);
-                    }} style={{width: '45px'}}>
-                        <Image src={'/edit.svg'} alt='Edit' width={28} height={28} style={{filter: 'var(--svg-inverse)'}} />
+                    }} style={{ width: '45px' }}>
+                        <Image src={'/edit.svg'} alt='Edit' width={28} height={28} style={{ filter: 'var(--svg-inverse)' }} />
                     </HeaderButton>
-
                 </div>
 
-                <InfoCardDatas valueFuncs={valueFuncs} inputFuncs={[codeInput, setCodeInput, nameInput, setNameInput]} canEdit={canEdit} submitButtonFunc={submitEditButton} />
-                
+                <InfoCardDatas
+                    headers={headers}
+                    inputValues={inputValues}
+                    handleInputChange={handleInputChange}
+                    canEdit={canEdit}
+                    submitButtonFunc={submitEditButton}
+                />
             </div>
         </>
     );
 }
 
-function InfoCardDatas({valueFuncs=[], inputFuncs=[], canEdit, submitButtonFunc}) {
-    
+// 4. Make InfoCardDatas dynamic by mapping over the values
+function InfoCardDatas({ headers, inputValues, handleInputChange, canEdit, submitButtonFunc }) {
     return (
         <>
             <div className='info-card-datas'>
-                <InfoCardData text='Code: ' inputValue={inputFuncs[0]} setInputFuncs={inputFuncs[1]} canEdit={canEdit} />
-                <InfoCardData text='Name: ' inputValue={inputFuncs[2]} setInputFuncs={inputFuncs[3]} canEdit={canEdit} />
+                {inputValues.map((value, index) => (
+                    <InfoCardData
+                        key={index}
+                        text={`${headers[index] || `Field ${index + 1}`}: `}
+                        inputValue={value}
+                        setInputFuncs={(newValue) => handleInputChange(index, newValue)}
+                        canEdit={canEdit}
+                    />
+                ))}
             </div>
 
             {canEdit && <button onClick={submitButtonFunc} className='submit-button'>Done</button>}
-
         </>
     );
 }
@@ -111,9 +134,8 @@ function InfoCardData({text='Label: ', inputValue='None', setInputFuncs, canEdit
         <>
             <div className={classVar}>
                 <label>{text}</label>
-                <input value={inputValue} onChange={(e) => {setInputFuncs(e.target.value)}} readOnly={!canEdit} />
+                <input value={inputValue || ''} onChange={(e) => { setInputFuncs(e.target.value) }} readOnly={!canEdit} />
             </div>
         </>
     );
-
 }

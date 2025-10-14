@@ -11,11 +11,11 @@ import Button from '../Button';
 export default function Table({ table_name="Table", headers=["header1", "header2", "header3"], table_data=[], refreshFunc, displayRefresh, paginationFunctions=[], searchFuncs=[] }) {
 
     const [visibleInfoCard, setVisibleInfoCard] = useState(false);
-    const [collegeValue, setCollegeValue] = useState([]);
+    const [selectedRow, setSelectedRow] = useState([]);
 
     return (
     <>
-        <InfoCard visibility={[visibleInfoCard, setVisibleInfoCard]} valueFuncs={[collegeValue, setCollegeValue]} setValue={setCollegeValue} refreshFunc={refreshFunc} />
+        <InfoCard headers={headers} visibility={[visibleInfoCard, setVisibleInfoCard]} valueFuncs={[selectedRow, setSelectedRow]} refreshFunc={refreshFunc} />
 
         <div className='table-header'>
             <label>{table_name}</label>
@@ -26,7 +26,7 @@ export default function Table({ table_name="Table", headers=["header1", "header2
 
         <SearchBarComponent headers={headers} funcs={searchFuncs} />
 
-        <TableComponent headers={headers} table_data={table_data} setFunctions={[setVisibleInfoCard, setCollegeValue]} displayRefresh={displayRefresh} paginationFunctions={paginationFunctions} />
+        <TableComponent headers={headers} table_data={table_data} setFunctions={[setVisibleInfoCard, setSelectedRow]} displayRefresh={displayRefresh} paginationFunctions={paginationFunctions} />
 
         <Pagination paginationFunctions={paginationFunctions} />
     </>
