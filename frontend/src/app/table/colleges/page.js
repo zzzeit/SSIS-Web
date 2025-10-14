@@ -21,7 +21,7 @@ export default function Colleges() {
         console.log(`Fetching Data...`);
         let link = `http://192.168.1.50:5000/search/colleges/${searchBy}/${searchValue}/${page}/${ascending}`;
         if (searchValue === '') {
-            link = `http://192.168.1.50:5000/get/colleges/${page}/${ascending}`;
+            link = `http://192.168.1.50:5000/get/colleges/${searchBy}/${page}/${ascending}`;
         }
         const data = await fetch(link);
         const result = await data.json();

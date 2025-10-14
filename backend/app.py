@@ -27,11 +27,15 @@ class College(db.Model):
 with app.app_context():
     db.create_all()
 
-@app.route("/get/colleges/<int:page>/<int:ascending>")
-def getColleges(page, ascending):
-    order = desc(College.code)
+@app.route("/get/colleges/<string:attribute>/<int:page>/<int:ascending>")
+def getColleges(page, attribute, ascending):
+    if attribute == 'name':
+        att = College.name
+    else:
+        att = College.code
+    order = desc(att)
     if ascending == 1:
-        order = asc(College.code)
+        order = asc(att)
     colleges = College.query.order_by(order).offset((page - 1) * 14).limit(14).all()
     total_colleges = College.query.count()
     total_pages = ceil(total_colleges / 14)
@@ -105,8 +109,10 @@ def searchCollege(value, attribute, page, ascending):
     # 1. Build the base query with the filter
     if attribute == 'name':
         base_query = College.query.filter(College.name.ilike(search_pattern))
+        att = College.name
     elif attribute == 'code':
         base_query = College.query.filter(College.code.ilike(search_pattern))
+        att = College.code
     else:
         return jsonify({"error": f"Searching by attribute '{attribute}' is not supported."}), 400
 
@@ -115,7 +121,7 @@ def searchCollege(value, attribute, page, ascending):
     total_pages = ceil(total_results / 14) # Assuming 14 items per page
 
     # 3. Apply sorting and pagination to the base query
-    order = desc(College.code) if ascending == 0 else asc(College.code)
+    order = desc(att) if ascending == 0 else asc(att)
     
     paginated_results = base_query.order_by(order).offset((page - 1) * 14).limit(14).all()
 
