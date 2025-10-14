@@ -8,7 +8,7 @@ import Lottie from 'lottie-react';
 import loadingIcon from './loading.json';
 import Button from '../Button';
 
-export default function Table({ table_name="Table", headers=["header1", "header2", "header3"], table_data=[], refreshFunc, displayRefresh, paginationFunctions=[], searchFuncs=[] }) {
+export default function Table({ table_name="Table", header_name="", headers=["header1", "header2", "header3"], table_data=[], refreshFunc, displayRefresh, paginationFunctions=[], searchFuncs=[] }) {
 
     const [visibleInfoCard, setVisibleInfoCard] = useState(false);
     const [selectedRow, setSelectedRow] = useState([]);
@@ -18,7 +18,7 @@ export default function Table({ table_name="Table", headers=["header1", "header2
         <InfoCard table_name={table_name} headers={headers} visibility={[visibleInfoCard, setVisibleInfoCard]} valueFuncs={[selectedRow, setSelectedRow]} refreshFunc={refreshFunc} />
 
         <div className='table-header'>
-            <label>{table_name}</label>
+            <label>{header_name}</label>
             {/* <HeaderButton className='inline right-auto'>
                 <Lottie animationData={serverIcon} style={{width: '40px',height: '40px'}} loop autoPlay />
             </HeaderButton> */}

@@ -98,7 +98,7 @@ export default function Programs() {
                 ["College: ", program_college, set_program_college]
             ]} submitFunc={submitForm} />
             
-            <Table table_name={tableName} headers={attributes} table_data={table_data} refreshFunc={updateTableData} displayRefresh={displayRefresh} paginationFunctions={[page, setPage, maxPage]} searchFuncs={[ascending, setAscending, searchValue, setSearchValue, searchBy, setSearchBy]} />
+            <Table table_name={tableName} header_name={'Program Table'} headers={attributes} table_data={table_data} refreshFunc={updateTableData} displayRefresh={displayRefresh} paginationFunctions={[page, setPage, maxPage]} searchFuncs={[ascending, setAscending, searchValue, setSearchValue, searchBy, setSearchBy]} />
         </>
     )
 }
