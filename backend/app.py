@@ -2,7 +2,7 @@ from flask import Flask, jsonify
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy import asc, desc
+from sqlalchemy import asc, desc, ForeignKey
 from math import ceil
 
 # 2. Create an instance of the Flask class
@@ -21,8 +21,13 @@ def hello_world():
 
 # COLLEGE
 class College(db.Model):
-    code = db.Column(db.String(16), primary_key=True)
+    code = db.Column(db.String(30), primary_key=True)
     name = db.Column(db.String(80), nullable=False)
+
+class Program(db.Model):
+    code = db.Column(db.String(30), primary_key=True)
+    name = db.Column(db.String(80), nullable=False)
+    college = db.Column(db.String(30), db.ForeignKey('college.code', ondelete='CASCADE', onupdate='CASCADE'), nullable=False)
 
 with app.app_context():
     db.create_all()
@@ -30,7 +35,7 @@ with app.app_context():
 @app.route("/get/colleges/<string:attribute>/<int:page>/<int:ascending>")
 def getColleges(page, attribute, ascending):
     try:
-        if attribute == 'name':
+        if attribute.lower() == 'name':
             att = College.name
         else:
             att = College.code
@@ -110,17 +115,15 @@ def editCollege(oldCode, newCode, newName):
         print(f"An error occurred: {e}")
         return jsonify({"error": "An unexpected error occurred on the server."}), 500
 
-# In backend/app.py
-
 @app.route("/search/colleges/<string:attribute>/<string:value>/<int:page>/<int:ascending>")
 def searchCollege(value, attribute, page, ascending):
     search_pattern = f"%{value}%"
 
     # 1. Build the base query with the filter
-    if attribute == 'name':
+    if attribute.lower() == 'name':
         base_query = College.query.filter(College.name.ilike(search_pattern))
         att = College.name
-    elif attribute == 'code':
+    elif attribute.lower() == 'code':
         base_query = College.query.filter(College.code.ilike(search_pattern))
         att = College.code
     else:
@@ -141,7 +144,93 @@ def searchCollege(value, attribute, page, ascending):
     # 5. Return both the paginated data and the total page count
     return jsonify([formatted_results, total_pages])
 
-# This part is optional but good practice to run the app
+# PROGRAMS
+@app.route("/get/programs/<string:attribute>/<int:page>/<int:ascending>")
+def getPrograms(attribute, page, ascending):
+    try:
+        if attribute.lower() == 'code':
+            att = Program.code
+        elif attribute.lower() == 'name':
+            att = Program.name
+        else:
+            att = Program.college
+        
+        order = desc(att)
+        if ascending == 1:
+            order = asc(att)
+            
+        programs = Program.query.order_by(order).offset((page - 1) * 14).limit(14).all()
+        total_programs = Program.query.count()
+        total_pages = ceil(total_programs / 14)
+        
+        result = [[p.code, p.name, p.college] for p in programs]
+        return jsonify([result, total_pages]), 200
+        
+    except Exception as e:
+        print(f"An error occurred in getPrograms: {e}")
+        return jsonify({"error": "An unexpected error occurred on the server."}), 500
+
+@app.route("/search/programs/<string:attribute>/<string:value>/<int:page>/<int:ascending>")
+def searchProgram(attribute, value, page, ascending):
+    try:
+        search_pattern = f"%{value}%"
+        att_str = attribute.lower()
+
+        # 1. Build the base query with the filter
+        if att_str == 'name':
+            base_query = Program.query.filter(Program.name.ilike(search_pattern))
+            sort_att = Program.name
+        elif att_str == 'code':
+            base_query = Program.query.filter(Program.code.ilike(search_pattern))
+            sort_att = Program.code
+        elif att_str == 'college':
+            base_query = Program.query.filter(Program.college.ilike(search_pattern))
+            sort_att = Program.college
+        else:
+            return jsonify({"error": f"Searching by attribute '{attribute}' is not supported."}), 400
+
+        # 2. Get the total count from the filtered query
+        total_results = base_query.count()
+        total_pages = ceil(total_results / 14)
+
+        # 3. Apply sorting and pagination
+        order = desc(sort_att) if ascending == 0 else asc(sort_att)
+        paginated_results = base_query.order_by(order).offset((page - 1) * 14).limit(14).all()
+
+        # 4. Format results, including the college code
+        formatted_results = [[p.code, p.name, p.college] for p in paginated_results]
+
+        # 5. Return paginated data and total page count
+        return jsonify([formatted_results, total_pages]), 200
+        
+    except Exception as e:
+        print(f"An error occurred in searchProgram: {e}")
+        return jsonify({"error": "An unexpected error occurred on the server."}), 500
+
+
+@app.route("/insert/program/<string:code>/<string:name>/<string:college>")
+def insertProgram(code, name, college):
+    try:
+        # 1. Check if the referenced college exists first
+        college_exists = College.query.get(college)
+        if not college_exists:
+            # 2. If not, return a specific error (400 Bad Request is appropriate)
+            return jsonify({"error": f"Cannot add program. College with code '{college}' does not exist."}), 400
+
+        program = Program(code=code, name=name, college=college)
+        db.session.add(program)
+        db.session.commit()
+        return jsonify([program.code, program.name]), 201
+        
+    except IntegrityError:
+        db.session.rollback()
+        return jsonify({"error": f"Program with code '{code}' already exists."}), 409
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"An error occurred: {e}")
+        return jsonify({"error": "An unexpected error occurred on the server."}), 500
+
 if __name__ == "__main__":
     # app.run(debug=True)
     app.run(host='0.0.0.0', port=5000, debug=True)

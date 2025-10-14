@@ -1,10 +1,11 @@
 "use client";
-import { use, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Table from '../page'
 import InsertForm from '../InsertForm'
 
 
 export default function Colleges() {
+    const [tableName, setTableName] = useState('college');
     const [college_code, set_college_code] = useState('');
     const [college_name, set_college_name] = useState('');
 
@@ -90,7 +91,7 @@ export default function Colleges() {
         <>
             <InsertForm fields={[["Code: ", college_code, set_college_code], ["Name: ", college_name, set_college_name]]} submitFunc={submitForm} />
             
-            <Table table_name={"College Table"} headers={["Code", "Name"]} table_data={table_data} refreshFunc={updateTableData} displayRefresh={displayRefresh} paginationFunctions={[page, setPage, maxPage]} searchFuncs={[ascending, setAscending, searchValue, setSearchValue, searchBy, setSearchBy]} />
+            <Table table_name={tableName} headers={["Code", "Name"]} table_data={table_data} refreshFunc={updateTableData} displayRefresh={displayRefresh} paginationFunctions={[page, setPage, maxPage]} searchFuncs={[ascending, setAscending, searchValue, setSearchValue, searchBy, setSearchBy]} />
         </>
     )
 }

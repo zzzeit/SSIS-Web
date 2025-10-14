@@ -4,7 +4,7 @@ import HeaderButton from '../HeaderButton';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 
-export default function InfoCard({ visibility, headers = [], valueFuncs = [], refreshFunc }) {
+export default function InfoCard({ table_name='', visibility, headers = [], valueFuncs = [], refreshFunc }) {
     const [canEdit, setCanEdit] = useState(false);
     const [inputValues, setInputValues] = useState([]);
 
@@ -14,7 +14,7 @@ export default function InfoCard({ visibility, headers = [], valueFuncs = [], re
 
         const isConfirm = window.confirm(`Are you sure you want to delete ${oldCode}?`);
         if (isConfirm) {
-            const response = await fetch(`http://192.168.1.50:5000/delete/college/${oldCode}`);
+            const response = await fetch(`http://192.168.1.50:5000/delete/${table_name}/${oldCode}`);
             if (response.ok) {
                 refreshFunc();
                 visibilityFunc();
@@ -41,7 +41,7 @@ export default function InfoCard({ visibility, headers = [], valueFuncs = [], re
         console.log(`Changing college ${oldCode} into ${newCode} - ${newName}`);
         const isConfirm = window.confirm(`Are you sure you want to edit ${oldCode} into ${newCode} - ${newName}?`);
         if (isConfirm) {
-            const response = await fetch(`http://192.168.1.50:5000/edit/college/${oldCode}/${newCode}/${newName}`);
+            const response = await fetch(`http://192.168.1.50:5000/edit/${table_name}/${oldCode}/${newCode}/${newName}`);
             if (response.ok) {
                 refreshFunc();
                 visibilityFunc();

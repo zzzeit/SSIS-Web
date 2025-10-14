@@ -15,7 +15,7 @@ export default function Table({ table_name="Table", headers=["header1", "header2
 
     return (
     <>
-        <InfoCard headers={headers} visibility={[visibleInfoCard, setVisibleInfoCard]} valueFuncs={[selectedRow, setSelectedRow]} refreshFunc={refreshFunc} />
+        <InfoCard table_name={table_name} headers={headers} visibility={[visibleInfoCard, setVisibleInfoCard]} valueFuncs={[selectedRow, setSelectedRow]} refreshFunc={refreshFunc} />
 
         <div className='table-header'>
             <label>{table_name}</label>
