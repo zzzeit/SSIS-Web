@@ -207,7 +207,6 @@ def searchProgram(attribute, value, page, ascending):
         print(f"An error occurred in searchProgram: {e}")
         return jsonify({"error": "An unexpected error occurred on the server."}), 500
 
-
 @app.route("/insert/program/<string:code>/<string:name>/<string:college>")
 def insertProgram(code, name, college):
     try:
@@ -229,6 +228,28 @@ def insertProgram(code, name, college):
     except Exception as e:
         db.session.rollback()
         print(f"An error occurred: {e}")
+        return jsonify({"error": "An unexpected error occurred on the server."}), 500
+
+@app.route("/delete/program/<string:code>")
+def deleteProgram(code):
+    try:
+        # Find the program by its primary key
+        program = Program.query.get(code)
+
+        # If the program doesn't exist, return a 404 error
+        if program is None:
+            return jsonify({"error": f"Program with code '{code}' not found."}), 404
+
+        # Delete the program object and commit the session
+        db.session.delete(program)
+        db.session.commit()
+
+        # Return a success message with a 200 OK status
+        return jsonify({"message": f"Program with code '{code}' deleted successfully."}), 200
+
+    except Exception as e:
+        db.session.rollback()
+        print(f"An error occurred while deleting program: {e}")
         return jsonify({"error": "An unexpected error occurred on the server."}), 500
 
 if __name__ == "__main__":
