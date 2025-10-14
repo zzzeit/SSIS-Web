@@ -23,17 +23,34 @@ export default function Colleges() {
         if (searchValue === '') {
             link = `http://192.168.1.50:5000/get/colleges/${searchBy}/${page}/${ascending}`;
         }
-        const data = await fetch(link);
-        const result = await data.json();
-        set_table_data(result[0]);
-        setMaxPage(result[1]);
+        const response = await fetch(link);
+        if (response.status === 200) {
+            const data = await response.json();
+            set_table_data(data[0]);
+            setMaxPage(data[1]);
+        } else {
+            const errorData = await response.json();
+            window.alert(errorData.error || `An unknown error has occured. STATUS ${response.status}`);
+        }
         setDisplayRefresh(false);
     };
 
 
-    const submitForm = () => {
+    const submitForm = async () => {
+        if (!college_code.trim() || !college_name.trim()) {
+            window.alert("College Code and Name cannot be empty.");
+            return; // Stop the function from proceeding
+        }
         console.log(`Submitting College [${college_code} | ${college_name}]`);
-        fetch(`http://192.168.1.50:5000/insert/college/${college_code}/${college_name}`);
+        const response = await fetch(`http://192.168.1.50:5000/insert/college/${college_code}/${college_name}`);
+        if (response.status === 201) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+            updateTableData();
+            clearFields();
+        } else {
+            const errorData = await response.json();
+            window.alert(errorData.error || `An unknown error has occured. STATUS ${response.status}`);
+        }
     };
 
     useEffect(() => {
@@ -71,7 +88,7 @@ export default function Colleges() {
 
     return (
         <>
-            <InsertForm fields={[["Code: ", college_code, set_college_code], ["Name: ", college_name, set_college_name]]} functions={[updateTableData, submitForm, clearFields]} />
+            <InsertForm fields={[["Code: ", college_code, set_college_code], ["Name: ", college_name, set_college_name]]} submitFunc={submitForm} />
             
             <Table table_name={"College Table"} headers={["Code", "Name"]} table_data={table_data} refreshFunc={updateTableData} displayRefresh={displayRefresh} paginationFunctions={[page, setPage, maxPage]} searchFuncs={[ascending, setAscending, searchValue, setSearchValue, searchBy, setSearchBy]} />
         </>

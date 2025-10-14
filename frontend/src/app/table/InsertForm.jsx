@@ -2,15 +2,8 @@
 import './InsertForm.css'
 import './InfoCard'
 
-export default function InsertForm({ insert_form_name="Insert Form", fields=[["Field_1: ", null, null], ["Field_2: ", null, null], ["Field_3: ", null]], functions=[] }) {
-    const submitButton = async () => {
-        await functions[1]();
+export default function InsertForm({ insert_form_name="Insert Form", fields=[["Field_1: ", null, null], ["Field_2: ", null, null], ["Field_3: ", null]], submitFunc }) {
 
-        await new Promise(resolve => setTimeout(resolve, 100));
-
-        functions[0]();
-        functions[2]();
-    }
     return (
         <>
             <div className='insert'>
@@ -26,7 +19,7 @@ export default function InsertForm({ insert_form_name="Insert Form", fields=[["F
                         </div>
                     ))}
 
-                    <button onClick={submitButton}>Done</button>
+                    <button onClick={submitFunc}>Done</button>
                 </div>
             </div>
         </>

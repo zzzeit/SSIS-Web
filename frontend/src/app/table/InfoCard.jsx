@@ -12,13 +12,17 @@ export default function InfoCard({visibility, valueFuncs=[], refreshFunc}) {
 
     const deleteFunc = async () => {
         const isConfirm = window.confirm(`Are you sure you want to delete ${valueFuncs[0][0]}?`);
-
         if (isConfirm) {
-            const d = await fetch(`http://192.168.1.50:5000/delete/college/${valueFuncs[0][0]}`);
-            console.log(d);
+            const response = await fetch(`http://192.168.1.50:5000/delete/college/${valueFuncs[0][0]}`);
+            if (response.status === 200) {
+                refreshFunc();
+                visibilityFunc();
+            } else {
+                const errorData = await response.json();
+                window.alert(errorData.error || `An unknown error has occured. STATUS ${response.status}`);
+            }
+
         }
-        refreshFunc();
-        visibilityFunc();
     }
 
     const visibilityFunc = () => {
@@ -31,9 +35,18 @@ export default function InfoCard({visibility, valueFuncs=[], refreshFunc}) {
 
     const submitEditButton = async () => {
         console.log(`Changing college ${valueFuncs[0][0]} into ${codeInput} - ${nameInput}`)
-        await fetch(`http://192.168.1.50:5000/edit/college/${valueFuncs[0][0]}/${codeInput}/${nameInput}`);
-        refreshFunc();
-        visibilityFunc();
+        const isConfirm = window.confirm(`Are you sure you want to edit ${valueFuncs[0][0]} into ${codeInput} - ${nameInput}?`);
+        if (isConfirm) {
+            const response = await fetch(`http://192.168.1.50:5000/edit/college/${valueFuncs[0][0]}/${codeInput}/${nameInput}`);
+            if (response.status === 200) {
+                refreshFunc();
+                visibilityFunc();       
+            } else {
+                const errorData = await response.json();
+                window.alert(errorData.error || `An unknown error has occured. STATUS ${response.status}`);
+            }
+        }
+
     };
 
     useEffect(() => {

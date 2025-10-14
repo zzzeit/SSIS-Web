@@ -29,18 +29,28 @@ with app.app_context():
 
 @app.route("/get/colleges/<string:attribute>/<int:page>/<int:ascending>")
 def getColleges(page, attribute, ascending):
-    if attribute == 'name':
-        att = College.name
-    else:
-        att = College.code
-    order = desc(att)
-    if ascending == 1:
-        order = asc(att)
-    colleges = College.query.order_by(order).offset((page - 1) * 14).limit(14).all()
-    total_colleges = College.query.count()
-    total_pages = ceil(total_colleges / 14)
-    result = [[c.code, c.name] for c in colleges]
-    return jsonify([result, total_pages])
+    try:
+        if attribute == 'name':
+            att = College.name
+        else:
+            att = College.code
+        
+        order = desc(att)
+        if ascending == 1:
+            order = asc(att)
+            
+        colleges = College.query.order_by(order).offset((page - 1) * 14).limit(14).all()
+        total_colleges = College.query.count()
+        total_pages = ceil(total_colleges / 14)
+        
+        result = [[c.code, c.name] for c in colleges]
+        return jsonify([result, total_pages]), 200
+        
+    except Exception as e:
+        # Log the error for debugging on the server
+        print(f"An error occurred in getColleges: {e}")
+        # Return a generic 500 error to the client
+        return jsonify({"error": "An unexpected error occurred on the server."}), 500
 
 @app.route("/insert/college/<string:code>/<string:name>")
 def insertCollege(code, name):
