@@ -26,7 +26,7 @@ export default function Table({ table_name="Table", headers=["header1", "header2
 
         <SearchBarComponent funcs={searchFuncs} />
 
-        <TableComponent headers={headers} table_data={table_data} setFunctions={[setVisibleInfoCard, setCollegeValue]} displayRefresh={displayRefresh} />
+        <TableComponent headers={headers} table_data={table_data} setFunctions={[setVisibleInfoCard, setCollegeValue]} displayRefresh={displayRefresh} paginationFunctions={paginationFunctions} />
 
         <Pagination paginationFunctions={paginationFunctions} />
     </>
@@ -57,7 +57,7 @@ function SearchBarComponent({funcs=[]}) {
     );
 }
 
-function TableComponent({headers, table_data, setFunctions=[], displayRefresh}) {
+function TableComponent({headers, table_data, setFunctions=[], displayRefresh, paginationFunctions=[]}) {
 
     return (
         <>
@@ -79,7 +79,7 @@ function TableComponent({headers, table_data, setFunctions=[], displayRefresh}) 
                         {table_data.map((coll, index) => (
                             <tr key={coll[0]} className='h-10 college' onClick={() => {setFunctions[0](true); setFunctions[1]([coll[0], coll[1]]);}}>
                                 
-                                <td>{index + 1}</td>
+                                <td>{(index + 1) + ((paginationFunctions[0] - 1) * 14)}</td>
 
                                 <td>{coll[0]}</td>
                                 <td>{coll[1]}</td>
