@@ -29,7 +29,7 @@ export default function RootLayout({ children }) {
             <HeaderButton text={"About"} myLink={"/about"}>
               About
             </HeaderButton>
-            <HeaderDropdownMenu text={"Tables"} myLinks={["/table/colleges", "/table/programs", "/table"]} />
+            <HeaderDropdownMenu text={"Tables"} myLinks={["/table/colleges", "/table/programs", "/table/students"]} />
             <HeaderButton myLink={"/"}>
               Home
             </HeaderButton>
