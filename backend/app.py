@@ -27,7 +27,7 @@ class College(db.Model):
 class Program(db.Model):
     code = db.Column(db.String(30), primary_key=True)
     name = db.Column(db.String(80), nullable=False)
-    college = db.Column(db.String(30), db.ForeignKey('college.code', ondelete='CASCADE', onupdate='CASCADE'), nullable=False)
+    college = db.Column(db.String(30), db.ForeignKey('college.code', ondelete='SET NULL', onupdate='CASCADE'), nullable=False)
 
 class Student(db.Model):
     id_num = db.Column(db.String(8), primary_key=True)
