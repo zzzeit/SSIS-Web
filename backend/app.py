@@ -1,13 +1,20 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import asc, desc, ForeignKey
+from flask_bcrypt import Bcrypt
+from flask_jwt_extended import create_access_token, JWTManager
 from math import ceil
 
 # 2. Create an instance of the Flask class
 app = Flask(__name__)
 CORS(app)
+
+bcrypt = Bcrypt(app)
+app.config["JWT_SECRET_KEY"] = "absolute-nihility" # Change this!
+jwt = JWTManager(app)
+
 # Configure the PostgreSQL database URI
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:na1227@localhost:5432/postgres'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -36,6 +43,10 @@ class Student(db.Model):
     program_code = db.Column(db.String(30), db.ForeignKey('program.code', ondelete='SET NULL', onupdate='CASCADE'), nullable=True)
     year = db.Column(db.Integer, nullable=False)
     sex = db.Column(db.String(10), nullable=False)
+
+class User(db.Model):
+    username = db.Column(db.String(80), primary_key=True)
+    password = db.Column(db.String(120), nullable=False)
 
 with app.app_context():
     db.create_all()
@@ -436,6 +447,51 @@ def editStudent(old_id_num, new_id_num, fname, lname, program_code, year, sex):
         db.session.rollback()
         print(f"An error occurred while editing student: {e}")
         return jsonify({"error": "An unexpected error occurred on the server."}), 500
+
+@app.route("/register", methods=['POST'])
+def register_user():
+    try:
+        data = request.get_json()
+        username = data.get('username')
+        password = data.get('password')
+
+        if not username or not password:
+            return jsonify({"error": "Username and password are required."}), 400
+
+        # Hash the password before storing
+        hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
+        
+        new_user = User(username=username, password=hashed_password)
+        db.session.add(new_user)
+        db.session.commit()
+        
+        return jsonify({"message": f"User '{username}' created successfully."}), 201
+    except IntegrityError:
+        db.session.rollback()
+        return jsonify({"error": f"User with username '{username}' already exists."}), 409
+    except Exception as e:
+        db.session.rollback()
+        print(f"An error occurred during registration: {e}")
+        return jsonify({"error": "An unexpected error occurred."}), 500
+
+@app.route("/login", methods=['POST'])
+def login_user():
+    data = request.get_json()
+    username = data.get('username')
+    password = data.get('password')
+
+    if not username or not password:
+        return jsonify({"error": "Username and password are required."}), 400
+
+    user = User.query.get(username)
+
+    # Check if user exists and if the provided password hash matches the stored hash
+    if user and bcrypt.check_password_hash(user.password, password):
+        # Create and return a new access token
+        access_token = create_access_token(identity=username)
+        return jsonify(access_token=access_token), 200
+    
+    return jsonify({"error": "Invalid username or password."}), 401
 
 
 if __name__ == "__main__":

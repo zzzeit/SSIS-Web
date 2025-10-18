@@ -7,6 +7,7 @@ import Image from 'next/image';
 import Lottie from 'lottie-react';
 import loadingIcon from './loading.json';
 import Button from '../Button';
+import LogoutButton from './LogoutButton';
 
 export default function Table({ table_name="Table", header_name="", headers=["header1", "header2", "header3"], table_data=[], refreshFunc, displayRefresh, paginationFunctions=[], searchFuncs=[] }) {
 
@@ -29,6 +30,8 @@ export default function Table({ table_name="Table", header_name="", headers=["he
         <TableComponent headers={headers} table_data={table_data} setFunctions={[setVisibleInfoCard, setSelectedRow]} displayRefresh={displayRefresh} paginationFunctions={paginationFunctions} />
 
         <Pagination paginationFunctions={paginationFunctions} />
+
+        <LogoutButton />
     </>
     )
 }
