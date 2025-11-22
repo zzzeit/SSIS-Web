@@ -4,6 +4,8 @@ import Table from '../page';
 import InsertForm from '../InsertForm';
 
 export default function Students() {
+    const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
     // State for the insert form fields
     const [id_num, set_id_num] = useState('');
     const [fname, set_fname] = useState('');
@@ -29,9 +31,9 @@ export default function Students() {
         setDisplayRefresh(true);
         setNetworkError(null);
         try {
-            let link = `http://192.168.1.50:5000/get/students/${searchBy}/${page}/${ascending}`;
+            let link = `${API_URL}/get/students/${searchBy}/${page}/${ascending}`;
             if (searchValue.trim() !== '') {
-                link = `http://192.168.1.50:5000/search/students/${searchBy}/${searchValue}/${page}/${ascending}`;
+                link = `${API_URL}/search/students/${searchBy}/${searchValue}/${page}/${ascending}`;
             }
             
             const response = await fetch(link);
@@ -57,7 +59,7 @@ export default function Students() {
         }
         setNetworkError(null);
         try {
-            const response = await fetch(`http://192.168.1.50:5000/insert/student/${id_num}/${fname}/${lname}/${program_code}/${year}/${sex}`);
+            const response = await fetch(`${API_URL}/insert/student/${id_num}/${fname}/${lname}/${program_code}/${year}/${sex}`);
             if (response.ok) {
                 await new Promise(resolve => setTimeout(resolve, 100)); // Small delay for DB to update
                 updateTableData();

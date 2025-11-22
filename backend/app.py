@@ -4,13 +4,15 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import asc, desc, ForeignKey
 from math import ceil
+from config import BaseConfig
 
-# 2. Create an instance of the Flask class
+from dotenv import load_dotenv
+load_dotenv(dotenv_path='./.env')
+
 app = Flask(__name__)
 CORS(app)
 # Configure the PostgreSQL database URI
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:na1227@localhost:5432/postgres'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config.from_object(BaseConfig)
 
 db = SQLAlchemy(app)
 
@@ -440,4 +442,4 @@ def editStudent(old_id_num, new_id_num, fname, lname, program_code, year, sex):
 
 if __name__ == "__main__":
     # app.run(debug=True)
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host=BaseConfig.HOST, port=BaseConfig.PORT, debug=BaseConfig.DEBUG)

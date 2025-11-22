@@ -5,6 +5,8 @@ import InsertForm from '../InsertForm'
 
 
 export default function Programs() {
+    const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
     const attributes = ["Code", "Name", "College"];
     const [tableName, setTableName] = useState('program');
     const [program_code, set_program_code] = useState('');
@@ -22,9 +24,9 @@ export default function Programs() {
     const updateTableData = async () => {
         setDisplayRefresh(true);
         console.log(`Fetching Data...`);
-        let link = `http://192.168.1.50:5000/search/programs/${searchBy}/${searchValue}/${page}/${ascending}`;
+        let link = `${API_URL}/search/programs/${searchBy}/${searchValue}/${page}/${ascending}`;
         if (searchValue === '') {
-            link = `http://192.168.1.50:5000/get/programs/${searchBy}/${page}/${ascending}`;
+            link = `${API_URL}/get/programs/${searchBy}/${page}/${ascending}`;
         }
         const response = await fetch(link);
         if (response.status === 200) {
@@ -45,7 +47,7 @@ export default function Programs() {
             return; // Stop the function from proceeding
         }
         console.log(`Submitting College [${program_code} | ${program_name} | ${program_college}]`);
-        const response = await fetch(`http://192.168.1.50:5000/insert/program/${program_code}/${program_name}/${program_college}`);
+        const response = await fetch(`${API_URL}/insert/program/${program_code}/${program_name}/${program_college}`);
         if (response.status === 201) {
             await new Promise(resolve => setTimeout(resolve, 100));
             updateTableData();

@@ -5,6 +5,8 @@ import Image from 'next/image';
 import { useEffect, useState } from 'react';
 
 export default function InfoCard({ table_name='', visibility, headers = [], valueFuncs = [], refreshFunc }) {
+    const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
     const [canEdit, setCanEdit] = useState(false);
     const [inputValues, setInputValues] = useState([]);
 
@@ -14,7 +16,7 @@ export default function InfoCard({ table_name='', visibility, headers = [], valu
 
         const isConfirm = window.confirm(`Are you sure you want to delete ${oldCode}?`);
         if (isConfirm) {
-            const response = await fetch(`http://192.168.1.50:5000/delete/${table_name}/${oldCode}`);
+            const response = await fetch(`${API_URL}/delete/${table_name}/${oldCode}`);
             if (response.ok) {
                 refreshFunc();
                 visibilityFunc();
@@ -51,7 +53,7 @@ export default function InfoCard({ table_name='', visibility, headers = [], valu
         const isConfirm = window.confirm(`Are you sure you want to save these changes for item ${oldCode}?`);
         if (isConfirm) {
             // 5. Construct the final URL dynamically.
-            const url = `http://192.168.1.50:5000/edit/${table_name}/${oldCode}/${newValuesPath}`;
+            const url = `${API_URL}/edit/${table_name}/${oldCode}/${newValuesPath}`;
             console.log("Submitting edit request to:", url);
 
             const response = await fetch(url);
