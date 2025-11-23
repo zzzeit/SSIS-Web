@@ -27,14 +27,34 @@ export default function Students() {
     // Headers for the table and search dropdown
     const headers = ["ID_Num", "Fname", "Lname", "Program", "Year", "Sex"];
 
+    const clearFields = () => {
+        set_id_num('');
+        set_fname('');
+        set_lname('');
+        set_program_code('');
+        set_year('');
+        set_sex('');
+    };
+
+    // Effect to fetch data when page, search, or sort criteria change
+    useEffect(() => {
+        updateTableData();
+    }, [page, searchBy, ascending, searchValue]);
+
+    // Effect to handle invalid page numbers
+    useEffect(() => {
+        if (page > maxPage && maxPage > 0) {
+            setPage(maxPage);
+        } else if (page <= 0) {
+            setPage(1);
+        }
+    }, [page, maxPage]);
+
     const updateTableData = async () => {
         setDisplayRefresh(true);
         setNetworkError(null);
         try {
-            let link = `${API_URL}/get/students/${searchBy}/${page}/${ascending}`;
-            if (searchValue.trim() !== '') {
-                link = `${API_URL}/search/students/${searchBy}/${searchValue}/${page}/${ascending}`;
-            }
+            let link = `${API_URL}/students?attribute=${searchBy}&page=${page}&ascending=${ascending}&value=${searchValue}`;
             
             const response = await fetch(link);
             if (!response.ok) {
@@ -59,7 +79,11 @@ export default function Students() {
         }
         setNetworkError(null);
         try {
-            const response = await fetch(`${API_URL}/insert/student/${id_num}/${fname}/${lname}/${program_code}/${year}/${sex}`);
+            const response = await fetch(`${API_URL}/students`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ "id_num": id_num, "fname": fname, "lname": lname, "program_code": program_code, "year": year, "sex": sex })
+            });
             if (response.ok) {
                 await new Promise(resolve => setTimeout(resolve, 100)); // Small delay for DB to update
                 updateTableData();
@@ -74,28 +98,54 @@ export default function Students() {
         }
     };
 
-    const clearFields = () => {
-        set_id_num('');
-        set_fname('');
-        set_lname('');
-        set_program_code('');
-        set_year('');
-        set_sex('');
+    const submitEditButton = async (valueFuncs, inputValues, refreshFunc, visibilityFunc) => {
+        const oldCode = valueFuncs[0]?.[0];
+        if (!oldCode) return;
+
+        const newValues = inputValues;
+        if (newValues.some(val => !val || String(val).trim() === '')) {
+            window.alert("All fields must be filled out before submitting.");
+            return;
+        }
+
+        const isConfirm = window.confirm(`Are you sure you want to save these changes for item ${oldCode}?`);
+        if (isConfirm) {
+            const url = `${API_URL}/students/edit/${oldCode}`;
+            console.log("Submitting edit request to:", url);
+
+            const response = await fetch(url, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ "id_num": newValues[0], "fname": newValues[1], "lname": newValues[2], "program_code": newValues[3], "year": newValues[4], "sex": newValues[5] })
+            });
+            if (response.ok) {
+                refreshFunc();
+                visibilityFunc();
+            } else {
+                const errorData = await response.json();
+                window.alert(errorData.error || `An unknown error has occurred. STATUS ${response.status}`);
+            }
+        }
     };
 
-    // Effect to fetch data when page, search, or sort criteria change
-    useEffect(() => {
-        updateTableData();
-    }, [page, searchBy, ascending, searchValue]);
+    const deleteFunc = async (valueFuncs, refreshFunc, visibilityFunc) => {
+        const oldCode = valueFuncs[0]?.[0];
+        if (!oldCode) return;
 
-    // Effect to handle invalid page numbers
-    useEffect(() => {
-        if (page > maxPage && maxPage > 0) {
-            setPage(maxPage);
-        } else if (page <= 0) {
-            setPage(1);
+        const isConfirm = window.confirm(`Are you sure you want to delete ${oldCode}?`);
+        if (isConfirm) {
+            const response = await fetch(`${API_URL}/students/delete/${oldCode}`, {
+                method: 'DELETE'
+            });
+            if (response.ok) {
+                refreshFunc();
+                visibilityFunc();
+            } else {
+                const errorData = await response.json();
+                window.alert(errorData.error || `An unknown error has occurred. STATUS ${response.status}`);
+            }
         }
-    }, [page, maxPage]);
+    }
 
     return (
         <>
@@ -120,7 +170,8 @@ export default function Students() {
                 refreshFunc={updateTableData} 
                 displayRefresh={displayRefresh} 
                 paginationFunctions={[page, setPage, maxPage]} 
-                searchFuncs={[ascending, setAscending, searchValue, setSearchValue, searchBy, setSearchBy]} 
+                searchFuncs={[ascending, setAscending, searchValue, setSearchValue, searchBy, setSearchBy]}
+                editDeleteFuncs={[submitEditButton, deleteFunc]} 
             />
         </>
     )

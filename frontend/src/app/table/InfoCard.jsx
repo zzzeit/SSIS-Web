@@ -4,28 +4,12 @@ import HeaderButton from '../HeaderButton';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 
-export default function InfoCard({ table_name='', visibility, headers = [], valueFuncs = [], refreshFunc }) {
+export default function InfoCard({ table_name='', visibility, headers = [], valueFuncs = [], refreshFunc, editDeleteFuncs = [] }) {
     const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
     const [canEdit, setCanEdit] = useState(false);
     const [inputValues, setInputValues] = useState([]);
 
-    const deleteFunc = async () => {
-        const oldCode = valueFuncs[0]?.[0];
-        if (!oldCode) return;
-
-        const isConfirm = window.confirm(`Are you sure you want to delete ${oldCode}?`);
-        if (isConfirm) {
-            const response = await fetch(`${API_URL}/delete/${table_name}/${oldCode}`);
-            if (response.ok) {
-                refreshFunc();
-                visibilityFunc();
-            } else {
-                const errorData = await response.json();
-                window.alert(errorData.error || `An unknown error has occurred. STATUS ${response.status}`);
-            }
-        }
-    }
 
     const visibilityFunc = () => {
         visibility[1](false);
@@ -33,37 +17,15 @@ export default function InfoCard({ table_name='', visibility, headers = [], valu
         setInputValues([]);
     };
 
-    const submitEditButton = async () => {
-        const oldCode = valueFuncs[0]?.[0];
-        if (!oldCode) return;
-
-        // 1. Use the whole inputValues array, not just the first two items.
-        const newValues = inputValues;
-
-        // 2. Basic validation to ensure no fields are empty.
-        if (newValues.some(val => !val || String(val).trim() === '')) {
-            window.alert("All fields must be filled out before submitting.");
-            return;
+    const submitEditButton = () => {
+        if (typeof editDeleteFuncs[0] === 'function') {
+            editDeleteFuncs[0](valueFuncs, inputValues, refreshFunc, visibilityFunc);
         }
+    };
 
-        // 3. Dynamically create the URL path from all the new values.
-        const newValuesPath = newValues.join('/');
-
-        // 4. Make the confirmation message more generic.
-        const isConfirm = window.confirm(`Are you sure you want to save these changes for item ${oldCode}?`);
-        if (isConfirm) {
-            // 5. Construct the final URL dynamically.
-            const url = `${API_URL}/edit/${table_name}/${oldCode}/${newValuesPath}`;
-            console.log("Submitting edit request to:", url);
-
-            const response = await fetch(url);
-            if (response.ok) {
-                refreshFunc();
-                visibilityFunc();
-            } else {
-                const errorData = await response.json();
-                window.alert(errorData.error || `An unknown error has occurred. STATUS ${response.status}`);
-            }
+    const deleteFunc = () => {
+        if (typeof editDeleteFuncs[1] === 'function') {
+            editDeleteFuncs[1](valueFuncs, refreshFunc, visibilityFunc);
         }
     };
 

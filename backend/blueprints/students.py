@@ -1,5 +1,5 @@
 # backend/blueprints/students.py
-from flask import Blueprint, jsonify, current_app
+from flask import Blueprint, jsonify, current_app, request, url_for
 from math import ceil
 from extensions import db
 from models import Student, Program
@@ -8,10 +8,16 @@ from sqlalchemy import asc, desc
 
 students_bp = Blueprint('students', __name__)
 
-@students_bp.route("/get/students/<string:attribute>/<int:page>/<int:ascending>")
-def getStudents(attribute, page, ascending):
+
+# ---- LIST / SEARCH ----
+# GET /students?attribute=id_num&page=1&ascending=1&value=...
+@students_bp.route("/students", methods=["GET"])
+def list_students():
     try:
-        att_str = attribute.lower()
+        attribute = request.args.get("attribute", "id_num")
+        page = int(request.args.get("page", 1))
+        ascending = int(request.args.get("ascending", 1))
+
         sort_map = {
             'id_num': Student.id_num,
             'fname': Student.fname,
@@ -20,66 +26,74 @@ def getStudents(attribute, page, ascending):
             'year': Student.year,
             'sex': Student.sex
         }
-        att = sort_map.get(att_str, Student.id_num)
+        att = sort_map.get(attribute.lower(), Student.id_num)
 
         order = desc(att) if ascending == 0 else asc(att)
+        per_page = 14
 
-        students = Student.query.order_by(order).offset((page - 1) * 14).limit(14).all()
-        total_students = Student.query.count()
-        total_pages = ceil(total_students / 14)
+        value = request.args.get("value")
+        if value:
+            search_pattern = f"%{value}%"
+            if attribute.lower() == 'year':
+                # year search expects exact integer
+                try:
+                    year_val = int(value)
+                except ValueError:
+                    return jsonify({"error": "Invalid year value"}), 400
+                base_query = Student.query.filter(Student.year == year_val)
+            else:
+                col = sort_map.get(attribute.lower(), Student.id_num)
+                base_query = Student.query.filter(col.ilike(search_pattern))
 
-        result = [[s.id_num, s.fname, s.lname, s.program_code, s.year, s.sex] for s in students]
+            total = base_query.count()
+            items = base_query.order_by(order).offset((page - 1) * per_page).limit(per_page).all()
+        else:
+            total = Student.query.count()
+            items = Student.query.order_by(order).offset((page - 1) * per_page).limit(per_page).all()
+
+        total_pages = ceil(total / per_page) if total > 0 else 0
+        result = [[s.id_num, s.fname, s.lname, s.program_code, s.year, s.sex] for s in items]
         return jsonify([result, total_pages]), 200
 
     except Exception:
-        current_app.logger.exception("An error occurred in getStudents")
+        current_app.logger.exception("list_students failed")
         return jsonify({"error": "An unexpected error occurred on the server."}), 500
 
 
-@students_bp.route("/search/students/<string:attribute>/<string:value>/<int:page>/<int:ascending>")
-def searchStudents(attribute, value, page, ascending):
+# ---- GET single ----
+# GET /students/<id_num>
+@students_bp.route("/students/<string:id_num>", methods=["GET"])
+def get_student(id_num):
+    student = Student.query.get(id_num)
+    if not student:
+        return jsonify({"error": "Student not found"}), 404
+    return jsonify({
+        "id_num": student.id_num,
+        "fname": student.fname,
+        "lname": student.lname,
+        "program_code": student.program_code,
+        "year": student.year,
+        "sex": student.sex
+    }), 200
+
+
+# ---- CREATE ----
+# POST /students  body: { "id_num": "...", "fname": "...", "lname": "...", "program_code": "...", "year": 1, "sex": "M" }
+@students_bp.route("/students", methods=["POST"])
+def create_student():
+    data = request.get_json(silent=True) or {}
+    id_num = data.get("id_num")
+    fname = data.get("fname")
+    lname = data.get("lname")
+    program_code = data.get("program_code")
+    year = data.get("year")
+    sex = data.get("sex")
+
+    if not all([id_num, fname, lname, program_code, year, sex]):
+        return jsonify({"error": "'id_num', 'fname', 'lname', 'program_code', 'year', and 'sex' are required"}), 400
+
     try:
-        search_pattern = f"%{value}%"
-        att_str = attribute.lower()
-
-        sort_map = {
-            'id_num': Student.id_num,
-            'fname': Student.fname,
-            'lname': Student.lname,
-            'program': Student.program_code,
-            'year': Student.year,
-            'sex': Student.sex
-        }
-
-        if att_str not in sort_map:
-            return jsonify({"error": f"Searching by attribute '{attribute}' is not supported."}), 400
-
-        search_column = sort_map[att_str]
-
-        if att_str == 'year':
-            base_query = Student.query.filter(Student.year == int(value))
-        else:
-            base_query = Student.query.filter(search_column.ilike(search_pattern))
-
-        total_results = base_query.count()
-        total_pages = ceil(total_results / 14)
-
-        order = desc(search_column) if ascending == 0 else asc(search_column)
-        paginated_results = base_query.order_by(order).offset((page - 1) * 14).limit(14).all()
-
-        formatted_results = [[s.id_num, s.fname, s.lname, s.program_code, s.year, s.sex] for s in paginated_results]
-        return jsonify([formatted_results, total_pages]), 200
-
-    except Exception:
-        current_app.logger.exception("An error occurred in searchStudents")
-        return jsonify({"error": "An unexpected error occurred on the server."}), 500
-
-
-@students_bp.route("/insert/student/<string:id_num>/<string:fname>/<string:lname>/<string:program_code>/<int:year>/<string:sex>")
-def insertStudent(id_num, fname, lname, program_code, year, sex):
-    try:
-        program_exists = Program.query.get(program_code)
-        if not program_exists:
+        if not Program.query.get(program_code):
             return jsonify({"error": f"Program with code '{program_code}' does not exist."}), 400
 
         new_student = Student(
@@ -87,45 +101,49 @@ def insertStudent(id_num, fname, lname, program_code, year, sex):
             fname=fname,
             lname=lname,
             program_code=program_code,
-            year=year,
+            year=int(year),
             sex=sex
         )
         db.session.add(new_student)
         db.session.commit()
-        return jsonify({"message": "Student created successfully."}), 201
+        location = url_for('.get_student', id_num=new_student.id_num, _external=False)
+        return jsonify({
+            "id_num": new_student.id_num,
+            "fname": new_student.fname,
+            "lname": new_student.lname,
+            "program_code": new_student.program_code,
+            "year": new_student.year,
+            "sex": new_student.sex
+        }), 201, {"Location": location}
 
     except IntegrityError:
         db.session.rollback()
         return jsonify({"error": f"Student with ID '{id_num}' already exists."}), 409
     except Exception:
         db.session.rollback()
-        current_app.logger.exception("An error occurred in insertStudent")
+        current_app.logger.exception("create_student failed")
         return jsonify({"error": "An unexpected error occurred on the server."}), 500
 
 
-@students_bp.route("/delete/student/<string:id_num>")
-def deleteStudent(id_num):
-    try:
-        student = Student.query.get(id_num)
-        if student is None:
-            return jsonify({"error": f"Student with ID '{id_num}' not found."}), 404
+# ---- UPDATE ----
+# PUT /students/<old_id_num>  body: { "id_num": "...", "fname": "...", "lname": "...", "program_code": "...", "year": 1, "sex": "M" }
+@students_bp.route("/students/edit/<string:old_id_num>", methods=["PUT"])
+def update_student(old_id_num):
+    data = request.get_json(silent=True) or {}
+    new_id_num = data.get("id_num")
+    fname = data.get("fname")
+    lname = data.get("lname")
+    program_code = data.get("program_code")
+    year = data.get("year")
+    sex = data.get("sex")
 
-        db.session.delete(student)
-        db.session.commit()
-        return jsonify({"message": f"Student with ID '{id_num}' deleted successfully."}), 200
+    if not all([new_id_num, fname, lname, program_code, year, sex]):
+        return jsonify({"error": "'id_num', 'fname', 'lname', 'program_code', 'year', and 'sex' are required"}), 400
 
-    except Exception:
-        db.session.rollback()
-        current_app.logger.exception("An error occurred in deleteStudent")
-        return jsonify({"error": "An unexpected error occurred on the server."}), 500
-
-
-@students_bp.route("/edit/student/<string:old_id_num>/<string:new_id_num>/<string:fname>/<string:lname>/<string:program_code>/<int:year>/<string:sex>")
-def editStudent(old_id_num, new_id_num, fname, lname, program_code, year, sex):
     try:
         student = Student.query.get(old_id_num)
-        if student is None:
-            return jsonify({"error": f"Student with ID '{old_id_num}' not found."}), 404
+        if not student:
+            return jsonify({"error": "Student not found"}), 404
 
         if not Program.query.get(program_code):
             return jsonify({"error": f"Program with code '{program_code}' does not exist."}), 400
@@ -134,16 +152,40 @@ def editStudent(old_id_num, new_id_num, fname, lname, program_code, year, sex):
         student.fname = fname
         student.lname = lname
         student.program_code = program_code
-        student.year = year
+        student.year = int(year)
         student.sex = sex
 
         db.session.commit()
-        return jsonify({"message": "Student updated successfully."}), 200
+        return jsonify({
+            "id_num": student.id_num,
+            "fname": student.fname,
+            "lname": student.lname,
+            "program_code": student.program_code,
+            "year": student.year,
+            "sex": student.sex
+        }), 200
 
     except IntegrityError:
         db.session.rollback()
         return jsonify({"error": f"A student with ID '{new_id_num}' already exists."}), 409
     except Exception:
         db.session.rollback()
-        current_app.logger.exception("An error occurred in editStudent")
+        current_app.logger.exception("update_student failed")
+        return jsonify({"error": "An unexpected error occurred on the server."}), 500
+
+
+# ---- DELETE ----
+# DELETE /students/<id_num>
+@students_bp.route("/students/delete/<string:id_num>", methods=["DELETE"])
+def delete_student(id_num):
+    try:
+        student = Student.query.get(id_num)
+        if not student:
+            return jsonify({"error": "Student not found"}), 404
+        db.session.delete(student)
+        db.session.commit()
+        return "", 204
+    except Exception:
+        db.session.rollback()
+        current_app.logger.exception("delete_student failed")
         return jsonify({"error": "An unexpected error occurred on the server."}), 500

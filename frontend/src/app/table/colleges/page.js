@@ -19,43 +19,6 @@ export default function Colleges() {
     const [searchValue, setSearchValue] = useState('');
     const [searchBy, setSearchBy] = useState('code');
 
-    const updateTableData = async () => {
-        setDisplayRefresh(true);
-        console.log(`Fetching Data...`);
-        let link = `${API_URL}/search/colleges/${searchBy}/${searchValue}/${page}/${ascending}`;
-        if (searchValue === '') {
-            link = `${API_URL}/get/colleges/${searchBy}/${page}/${ascending}`;
-        }
-        const response = await fetch(link);
-        if (response.status === 200) {
-            const data = await response.json();
-            set_table_data(data[0]);
-            setMaxPage(data[1]);
-        } else {
-            const errorData = await response.json();
-            window.alert(errorData.error || `An unknown error has occured. STATUS ${response.status}`);
-        }
-        setDisplayRefresh(false);
-    };
-
-
-    const submitForm = async () => {
-        if (!college_code.trim() || !college_name.trim()) {
-            window.alert("College Code and Name cannot be empty.");
-            return; // Stop the function from proceeding
-        }
-        console.log(`Submitting College [${college_code} | ${college_name}]`);
-        const response = await fetch(`${API_URL}/insert/college/${college_code}/${college_name}`);
-        if (response.status === 201) {
-            await new Promise(resolve => setTimeout(resolve, 100));
-            updateTableData();
-            clearFields();
-        } else {
-            const errorData = await response.json();
-            window.alert(errorData.error || `An unknown error has occured. STATUS ${response.status}`);
-        }
-    };
-
     useEffect(() => {
         if (page > maxPage) {
             setPage(maxPage);
@@ -77,23 +40,122 @@ export default function Colleges() {
 
     useEffect(() => {
         updateTableData();
-        
-    }, [ascending]);
-
-    useEffect(() => {
-        updateTableData();
-    }, [searchBy]);
+    }, [ascending, searchBy]);
 
     const clearFields = () => {
         set_college_code('');
         set_college_name('');
     };
 
+    const updateTableData = async () => {
+        setDisplayRefresh(true);
+        console.log(`Fetching Data...`);
+        let link = `${API_URL}/colleges?attribute=${searchBy}&page=${page}&ascending=${ascending}&value=${searchValue}`;
+        const response = await fetch(link);
+        if (response.status === 200) {
+            const data = await response.json();
+            set_table_data(data[0]);
+            setMaxPage(data[1]);
+        } else {
+            const errorData = await response.json();
+            window.alert(errorData.error || `An unknown error has occured. STATUS ${response.status}`);
+        }
+        setDisplayRefresh(false);
+    };
+
+    const submitForm = async () => {
+        if (!college_code.trim() || !college_name.trim()) {
+            window.alert("College Code and Name cannot be empty.");
+            return; // Stop the function from proceeding
+        }
+        console.log(`Submitting College [${college_code} | ${college_name}]`);
+        const response = await fetch(`${API_URL}/colleges`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ "code": college_code, "name": college_name })
+        });
+        if (response.status === 201) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+            updateTableData();
+            clearFields();
+        } else {
+            const errorData = await response.json();
+            window.alert(errorData.error || `An unknown error has occured. STATUS ${response.status}`);
+        }
+    };
+
+    const submitEditButton = async (valueFuncs, inputValues, refreshFunc, visibilityFunc) => {
+        const oldCode = valueFuncs[0]?.[0];
+        if (!oldCode) return;
+
+        // 1. Use the whole inputValues array, not just the first two items.
+        const newValues = inputValues;
+
+        // 2. Basic validation to ensure no fields are empty.
+        if (newValues.some(val => !val || String(val).trim() === '')) {
+            window.alert("All fields must be filled out before submitting.");
+            return;
+        }
+
+        // 3. Dynamically create the URL path from all the new values.
+        const newValuesPath = newValues.join('/');
+
+        // 4. Make the confirmation message more generic.
+        const isConfirm = window.confirm(`Are you sure you want to save these changes for item ${oldCode}?`);
+        if (isConfirm) {
+            // 5. Construct the final URL dynamically.
+            const url = `${API_URL}/colleges/edit/${oldCode}`;
+            console.log("Submitting edit request to:", url);
+
+            const response = await fetch(url, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ "code": newValues[0], "name": newValues[1] })
+            });
+            if (response.ok) {
+                refreshFunc();
+                visibilityFunc();
+            } else {
+                const errorData = await response.json();
+                window.alert(errorData.error || `An unknown error has occurred. STATUS ${response.status}`);
+            }
+        }
+    };
+
+    const deleteFunc = async (valueFuncs, refreshFunc, visibilityFunc) => {
+        const oldCode = valueFuncs[0]?.[0];
+        if (!oldCode) return;
+
+        const isConfirm = window.confirm(`Are you sure you want to delete ${oldCode}?`);
+        if (isConfirm) {
+            const response = await fetch(`${API_URL}/colleges/delete/${oldCode}`, {
+                method: 'DELETE'
+            });
+            if (response.ok) {
+                refreshFunc();
+                visibilityFunc();
+            } else {
+                const errorData = await response.json();
+                window.alert(errorData.error || `An unknown error has occurred. STATUS ${response.status}`);
+            }
+        }
+    }
+
     return (
         <>
             <InsertForm fields={[["Code: ", college_code, set_college_code], ["Name: ", college_name, set_college_name]]} submitFunc={submitForm} />
             
-            <Table table_name={tableName} header_name={"College Table"} headers={["Code", "Name"]} table_data={table_data} refreshFunc={updateTableData} displayRefresh={displayRefresh} paginationFunctions={[page, setPage, maxPage]} searchFuncs={[ascending, setAscending, searchValue, setSearchValue, searchBy, setSearchBy]} />
+            <Table 
+                table_name={tableName} 
+                header_name={"College Table"} 
+                headers={["Code", "Name"]} 
+                table_data={table_data} 
+                refreshFunc={updateTableData} 
+                displayRefresh={displayRefresh} 
+                paginationFunctions={[page, setPage, maxPage]} 
+                searchFuncs={[ascending, setAscending, searchValue, setSearchValue, searchBy, setSearchBy]} 
+                editDeleteFuncs={[ submitEditButton, deleteFunc ]}
+                 />
         </>
     )
 }
