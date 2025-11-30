@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from 'react';
+import { uploadFile } from '@/utils/supaClient';
 import Table from '../page';
 import InsertForm from '../InsertForm';
 
@@ -24,6 +25,10 @@ export default function Students() {
     const [searchBy, setSearchBy] = useState('id_num'); // Default search attribute
     const [networkError, setNetworkError] = useState(null);
 
+    // State for avatar
+    const [avatarFile, setAvatarFile] = useState(null);
+    const [avatarURL, setAvatarURL] = useState(null);
+
     // Headers for the table and search dropdown
     const headers = ["ID_Num", "Fname", "Lname", "Program", "Year", "Sex"];
 
@@ -34,6 +39,8 @@ export default function Students() {
         set_program_code('');
         set_year('');
         set_sex('');
+        setAvatarFile(null);
+        setAvatarURL(null);
     };
 
     // Effect to fetch data when page, search, or sort criteria change
@@ -71,9 +78,15 @@ export default function Students() {
         }
     };
 
+    const uploadAvatar = async () => {
+        if (!id_num || !avatarFile) return;
+        const remotePath = `${id_num.replace(/-/g, "")}`;
+        await uploadFile('profile-pictures', remotePath, avatarFile);
+    }
+
     const submitForm = async () => {
         // Frontend validation
-        if (!id_num.trim() || !fname.trim() || !lname.trim() || !program_code.trim() || !year.trim() || !sex.trim()) {
+        if (!id_num.trim() || !fname.trim() || !lname.trim() || !program_code.trim() || !year.trim() || !sex.trim() || !avatarFile) {
             window.alert("All fields must be filled out to add a student.");
             return;
         }
@@ -88,6 +101,7 @@ export default function Students() {
                 await new Promise(resolve => setTimeout(resolve, 100)); // Small delay for DB to update
                 updateTableData();
                 clearFields();
+                uploadAvatar();
             } else {
                 const errorData = await response.json();
                 setNetworkError(errorData.error || `An unknown error occurred. STATUS: ${response.status}`);
@@ -152,6 +166,7 @@ export default function Students() {
             {networkError && <div style={{ color: 'red', textAlign: 'center', padding: '10px', border: '1px solid red', margin: '10px' }}>{networkError}</div>}
             
             <InsertForm 
+            insert_form_name='Insert Student'
                 fields={[
                     ["ID Number: ", id_num, set_id_num], 
                     ["First Name: ", fname, set_fname], 
@@ -161,6 +176,7 @@ export default function Students() {
                     ["Sex: ", sex, set_sex]
                 ]} 
                 submitFunc={submitForm} 
+                avatarUpdate={[avatarFile, setAvatarFile, avatarURL, setAvatarURL]}
             />
             
             <Table 

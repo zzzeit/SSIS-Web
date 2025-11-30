@@ -82,7 +82,7 @@ def get_student(id_num):
 @students_bp.route("/students", methods=["POST"])
 def create_student():
     data = request.get_json(silent=True) or {}
-    id_num = data.get("id_num")
+    id_num = data.get("id_num").replace("-", "")
     fname = data.get("fname")
     lname = data.get("lname")
     program_code = data.get("program_code")

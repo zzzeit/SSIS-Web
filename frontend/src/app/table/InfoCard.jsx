@@ -2,6 +2,7 @@
 import './InfoCard.css'
 import HeaderButton from '../HeaderButton';
 import Image from 'next/image';
+import AvatarPicker from '@/components/AvatarPicker/AvatarPicker';
 import { useEffect, useState } from 'react';
 
 export default function InfoCard({ table_name='', visibility, headers = [], valueFuncs = [], refreshFunc, editDeleteFuncs = [] }) {
@@ -15,6 +16,7 @@ export default function InfoCard({ table_name='', visibility, headers = [], valu
         visibility[1](false);
         setCanEdit(false);
         setInputValues([]);
+        console.log('Hiding InfoCard: ' + inputValues);
     };
 
     const submitEditButton = () => {
@@ -35,7 +37,7 @@ export default function InfoCard({ table_name='', visibility, headers = [], valu
         if (valueFuncs.length > 0 && valueFuncs[0]) {
             setInputValues(valueFuncs[0]);
         }
-    }, [valueFuncs]); // Depend on the whole array
+    }, [valueFuncs]);
 
     if (!visibility[0] || !valueFuncs[0] || valueFuncs[0].length === 0) {
         return null;
@@ -75,6 +77,7 @@ export default function InfoCard({ table_name='', visibility, headers = [], valu
                     handleInputChange={handleInputChange}
                     canEdit={canEdit}
                     submitButtonFunc={submitEditButton}
+                    valueFuncs={valueFuncs}
                 />
             </div>
         </>
@@ -82,10 +85,14 @@ export default function InfoCard({ table_name='', visibility, headers = [], valu
 }
 
 // 4. Make InfoCardDatas dynamic by mapping over the values
-function InfoCardDatas({ headers, inputValues, handleInputChange, canEdit, submitButtonFunc }) {
+function InfoCardDatas({ headers, inputValues, handleInputChange, canEdit, submitButtonFunc, valueFuncs }) {
+    const [avatarFile, setAvatarFile] = useState(null);
+    const [avatarURL, setAvatarURL] = useState(null);
+
     return (
         <>
             <div className='info-card-datas'>
+                <AvatarPicker avatarUpdate={[avatarFile, setAvatarFile, avatarURL, setAvatarURL]} viewOnly={!canEdit} valueFuncs={valueFuncs} />
                 {inputValues.map((value, index) => (
                     <InfoCardData
                         key={index}

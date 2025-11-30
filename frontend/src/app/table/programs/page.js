@@ -97,19 +97,15 @@ export default function Programs() {
         const oldCode = valueFuncs[0]?.[0];
         if (!oldCode) return;
 
-        // 1. Use the whole inputValues array, not just the first two items.
         const newValues = inputValues;
 
-        // 2. Basic validation to ensure no fields are empty.
         if (newValues.some(val => !val || String(val).trim() === '')) {
             window.alert("All fields must be filled out before submitting.");
             return;
         }
 
-        // 4. Make the confirmation message more generic.
         const isConfirm = window.confirm(`Are you sure you want to save these changes for item ${oldCode}?`);
         if (isConfirm) {
-            // 5. Construct the final URL dynamically.
             const url = `${API_URL}/programs/edit/${oldCode}`;
             console.log("Submitting edit request to:", url);
 
