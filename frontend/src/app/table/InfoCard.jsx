@@ -108,20 +108,25 @@ function InfoCardDatas({ table_name, headers, inputValues, handleInputChange, ca
             </div>
 
             {canEdit && <button onClick={() => {
-                const newValues = inputValues;
-                const idNum = inputValues[0].replace(/-/g, "");
-                const yearVal = inputValues[4];
-                if (newValues.some(val => !val || String(val).trim() === '')) {
-                    window.alert("All fields must be filled out before submitting.");
-                    return;
-                } else if (!idNum || isNaN(idNum) || idNum.length > 8) {
-                    window.alert("ID number must be numeric. Must have 8 digits");
-                    return;
-                } else if (!yearVal || isNaN(yearVal)) {
-                    window.alert("Year must be numeric.");
-                    return;
+
+                if (table_name === 'student') {
+                    const newValues = inputValues;
+                    const idNum = inputValues[0].replace(/-/g, "");
+                    const yearVal = inputValues[4];
+                    if (newValues.some(val => !val || String(val).trim() === '')) {
+                        window.alert("All fields must be filled out before submitting.");
+                        return;
+                    } else if (!idNum || isNaN(idNum) || idNum.length > 8) {
+                        window.alert("ID number must be numeric. Must have 8 digits");
+                        return;
+                    } else if (!yearVal || isNaN(yearVal)) {
+                        window.alert("Year must be numeric.");
+                        return;
+                    } else {
+                        updateFile('profile-pictures', valueFuncs[0][0].replace(/-/g, ""), inputValues[0].replace(/-/g, ""), avatarFile);
+                        submitButtonFunc(); 
+                    }
                 } else {
-                    updateFile('profile-pictures', valueFuncs[0][0].replace(/-/g, ""), inputValues[0].replace(/-/g, ""), avatarFile);
                     submitButtonFunc(); 
                 }
                 
