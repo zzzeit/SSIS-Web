@@ -22,22 +22,54 @@
     margin-right: auto;
     margin-top: 10px;
     margin-bottom: 10px;
+    padding: 15px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    max-width: 300px;
+    width: fit-content;
     border: .1px dashed rgb(117, 117, 117);
     border-radius: 7px;
     background-color: var(--color-background);
 }
 
 .insert-inputs div {
+    display: flex;
+    align-items: center; /* Vertically align label and input */
+    justify-content: space-between; /* Ensure proper spacing */
     margin-top: 10px;
+    width: 100%; /* Ensure the row takes full width */
+}
+
+.insert-inputs .avatar {
+    margin-top: 0px;
+}
+
+.insert-inputs div label {
+    flex: 1; /* Label takes up available space */
+    text-align: right; /* Align text to the right */
+    margin-right: 10px; /* Add spacing between label and input */
+}
+
+.insert-inputs div input {
+    flex: 2; /* Input takes up more space */
+}
+
+.insert-inputs div select {
+    appearance: none; /* For most browsers */
+    -webkit-appearance: none; /* For WebKit browsers */
+    -moz-appearance: none; /* For Firefox */
+    background-color: var(--color-background);
+    flex: 2;
 }
 
 .insert button {
     margin-top: 10px;
-    margin-bottom: 10px;
     border-radius: 10px;
     background-color: var(--color-emerald-700);
+    padding: 3px 5px;
+}
+
+.insert button:hover {
+    background-color: var(--color-emerald-500);
+    cursor: pointer;
 }

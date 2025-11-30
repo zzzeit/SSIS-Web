@@ -1,8 +1,10 @@
 import './AvatarPicker.css';
+import loadingIcon from '../../app/table/loading.json';
 import { downloadFile } from '@/utils/supaClient';
+import Lottie from 'lottie-react';
 import { useEffect } from 'react';
 
-export default function AvatarPicker({ avatarUpdate = [], viewOnly = false, valueFuncs = null }) {
+export default function AvatarPicker({ avatarUpdate = [], viewOnly = false, valueFuncs = null, loading = false }) {
 
 	useEffect(() => {
 		const fetchAvatar = async () => {
@@ -40,17 +42,17 @@ export default function AvatarPicker({ avatarUpdate = [], viewOnly = false, valu
 	}
 
 	return (
-		<div>
-			<div className="avatar" onClick={openPicker}>
-				{avatarUpdate[2] ? (
-					<img src={avatarUpdate[2]} alt="avatar" />
-				) : (
-					<svg width={100 * 0.5} height={100 * 0.5} viewBox="0 0 24 24" fill="none" aria-hidden>
-						<circle cx="12" cy="8" r="3.2" fill="#bbb" />
-						<path d="M4 20c0-3.3 3.6-6 8-6s8 2.7 8 6" fill="#bbb" />
-					</svg>
-				)}
-			</div>
+		<div className="avatar" onClick={openPicker}>
+			{avatarUpdate[2] ? (
+				<img src={avatarUpdate[2]} alt="avatar" />
+			) : loading ? (
+				<Lottie animationData={loadingIcon} style={{ width: 50, height: 50 }} loop autoPlay />
+			) : (
+				<svg width={100 * 0.5} height={100 * 0.5} viewBox="0 0 24 24" fill="none" aria-hidden>
+					<circle cx="12" cy="8" r="3.2" fill="#bbb" />
+					<path d="M4 20c0-3.3 3.6-6 8-6s8 2.7 8 6" fill="#bbb" />
+				</svg>
+			)}
 		</div>
 	);
 }

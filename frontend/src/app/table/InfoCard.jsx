@@ -94,7 +94,7 @@ function InfoCardDatas({ table_name, headers, inputValues, handleInputChange, ca
         <>
             <div className='info-card-datas'>
                 {table_name === 'student' && (
-                    <AvatarPicker avatarUpdate={[avatarFile, setAvatarFile, avatarURL, setAvatarURL]} viewOnly={!canEdit} valueFuncs={valueFuncs} />
+                    <AvatarPicker avatarUpdate={[avatarFile, setAvatarFile, avatarURL, setAvatarURL]} viewOnly={!canEdit} valueFuncs={valueFuncs} loading={true} />
                 )}
                 {inputValues.map((value, index) => (
                     <InfoCardData
@@ -124,7 +124,14 @@ function InfoCardData({text='Label: ', inputValue='None', setInputFuncs, canEdit
         <>
             <div className={classVar}>
                 <label>{text}</label>
-                <input value={inputValue || ''} onChange={(e) => { setInputFuncs(e.target.value) }} readOnly={!canEdit} />
+                {(text === "Sex: ") ? (
+                    <select value={inputValue || ''} onChange={(e) => { setInputFuncs(e.target.value) }} disabled={!canEdit}>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                    </select>
+                ) : (
+                    <input value={inputValue || ''} onChange={(e) => { setInputFuncs(e.target.value) }} readOnly={!canEdit} />
+                )}
             </div>
         </>
     );

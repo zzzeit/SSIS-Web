@@ -1,13 +1,15 @@
 .avatar {
-    --size: 96px;
+    --size: 130px;
     width: var(--size);
     height: var(--size);
+    max-width: var(--size);
     border-radius: 50%;
     overflow: hidden;
     background: #eee;
     position: relative;
     margin-left: auto;
     margin-right: auto;
+    margin-top: 0px;
 }
 
 .avatar:hover {
