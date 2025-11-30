@@ -93,6 +93,13 @@ def create_student():
     if not all([id_num, fname, lname, program_code, year, sex]):
         return jsonify({"error": "'id_num', 'fname', 'lname', 'program_code', 'year', and 'sex' are required"}), 400
 
+    if not id_num.isdigit():
+        return jsonify({"error": "ID number must be numeric"}), 400
+    try:
+        year = int(year)
+    except ValueError:
+        return jsonify({"error": "Year must be an integer"}), 400
+
     try:
         if not Program.query.get(program_code):
             return jsonify({"error": f"Program with code '{program_code}' does not exist."}), 400
@@ -142,6 +149,13 @@ def update_student(old_id_num):
     if not all([new_id_num, fname, lname, program_code, year, sex]):
         return jsonify({"error": "'id_num', 'fname', 'lname', 'program_code', 'year', and 'sex' are required"}), 400
 
+    if not new_id_num.isdigit():
+        return jsonify({"error": "ID number must be numeric"}), 400
+    try:
+        year = int(year)
+    except ValueError:
+        return jsonify({"error": "Year must be an integer"}), 400
+    
     try:
         student = Student.query.get(old_id_num)
         if not student:

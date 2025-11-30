@@ -86,8 +86,8 @@ export default function Students() {
 
     const submitForm = async () => {
         // Frontend validation
-        if (!id_num.trim() || !fname.trim() || !lname.trim() || !program_code.trim() || !year.trim() || !sex.trim() || !avatarFile) {
-            window.alert("All fields must be filled out to add a student.");
+        if (!avatarFile) {
+            window.alert("Student needs a profile picture.");
             return;
         }
         setNetworkError(null);
@@ -135,6 +135,7 @@ export default function Students() {
             if (response.ok) {
                 refreshFunc();
                 visibilityFunc();
+                return true;
             } else {
                 const errorData = await response.json();
                 window.alert(errorData.error || `An unknown error has occurred. STATUS ${response.status}`);
