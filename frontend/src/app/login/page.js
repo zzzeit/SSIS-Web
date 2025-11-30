@@ -3,6 +3,8 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation'; // For redirection
 
 export default function LoginPage() {
+    const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -18,7 +20,7 @@ export default function LoginPage() {
         }
 
         try {
-            const response = await fetch('http://192.168.1.50:5000/login', {
+            const response = await fetch(`${API_URL}/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

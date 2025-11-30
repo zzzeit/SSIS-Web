@@ -4,6 +4,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link'; // To link back to the login page
 
 export default function RegisterPage() {
+    const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -21,7 +23,7 @@ export default function RegisterPage() {
         }
 
         try {
-            const response = await fetch('http://192.168.1.50:5000/register', {
+            const response = await fetch(`${API_URL}/register`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
