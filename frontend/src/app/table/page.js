@@ -9,14 +9,14 @@ import loadingIcon from './loading.json';
 import Button from '../Button';
 import LogoutButton from './LogoutButton';
 
-export default function Table({ table_name="Table", header_name="", headers=["header1", "header2", "header3"], table_data=[], refreshFunc, displayRefresh, paginationFunctions=[], searchFuncs=[] }) {
+export default function Table({ table_name="Table", header_name="", headers=["header1", "header2", "header3"], table_data=[], refreshFunc, displayRefresh, paginationFunctions=[], searchFuncs=[], editDeleteFuncs=[] }) {
 
     const [visibleInfoCard, setVisibleInfoCard] = useState(false);
     const [selectedRow, setSelectedRow] = useState([]);
 
     return (
     <>
-        <InfoCard table_name={table_name} headers={headers} visibility={[visibleInfoCard, setVisibleInfoCard]} valueFuncs={[selectedRow, setSelectedRow]} refreshFunc={refreshFunc} />
+        <InfoCard table_name={table_name} headers={headers} visibility={[visibleInfoCard, setVisibleInfoCard]} valueFuncs={[selectedRow, setSelectedRow]} refreshFunc={refreshFunc} editDeleteFuncs={editDeleteFuncs} />
 
         <div className='table-header'>
             <label>{header_name}</label>

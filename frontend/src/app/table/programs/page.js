@@ -5,6 +5,8 @@ import InsertForm from '../InsertForm'
 
 
 export default function Programs() {
+    const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
     const attributes = ["Code", "Name", "College"];
     const [tableName, setTableName] = useState('program');
     const [program_code, set_program_code] = useState('');
@@ -18,43 +20,6 @@ export default function Programs() {
     const [ascending, setAscending] = useState(1);
     const [searchValue, setSearchValue] = useState('');
     const [searchBy, setSearchBy] = useState('code');
-
-    const updateTableData = async () => {
-        setDisplayRefresh(true);
-        console.log(`Fetching Data...`);
-        let link = `http://192.168.1.50:5000/search/programs/${searchBy}/${searchValue}/${page}/${ascending}`;
-        if (searchValue === '') {
-            link = `http://192.168.1.50:5000/get/programs/${searchBy}/${page}/${ascending}`;
-        }
-        const response = await fetch(link);
-        if (response.status === 200) {
-            const data = await response.json();
-            set_table_data(data[0]);
-            setMaxPage(data[1]);
-        } else {
-            const errorData = await response.json();
-            window.alert(errorData.error || `An unknown error has occured. STATUS ${response.status}`);
-        }
-        setDisplayRefresh(false);
-    };
-
-
-    const submitForm = async () => {
-        if (!program_code.trim() || !program_name.trim() || !program_college.trim()) {
-            window.alert("Please fill out all the fields");
-            return; // Stop the function from proceeding
-        }
-        console.log(`Submitting College [${program_code} | ${program_name} | ${program_college}]`);
-        const response = await fetch(`http://192.168.1.50:5000/insert/program/${program_code}/${program_name}/${program_college}`);
-        if (response.status === 201) {
-            await new Promise(resolve => setTimeout(resolve, 100));
-            updateTableData();
-            clearFields();
-        } else {
-            const errorData = await response.json();
-            window.alert(errorData.error || `An unknown error has occured. STATUS ${response.status}`);
-        }
-    };
 
     useEffect(() => {
         if (page > maxPage) {
@@ -90,6 +55,95 @@ export default function Programs() {
         set_program_college('');
     };
 
+    const updateTableData = async () => {
+        setDisplayRefresh(true);
+        console.log(`Fetching Data...`);
+        let link = `${API_URL}/programs?attribute=${searchBy}&page=${page}&ascending=${ascending}&value=${searchValue}`;
+        const response = await fetch(link);
+        if (response.status === 200) {
+            const data = await response.json();
+            set_table_data(data[0]);
+            setMaxPage(data[1]);
+        } else {
+            const errorData = await response.json();
+            window.alert(errorData.error || `An unknown error has occured. STATUS ${response.status}`);
+        }
+        setDisplayRefresh(false);
+    };
+
+
+    const submitForm = async () => {
+        if (!program_code.trim() || !program_name.trim() || !program_college.trim()) {
+            window.alert("Please fill out all the fields");
+            return; // Stop the function from proceeding
+        }
+        console.log(`Submitting College [${program_code} | ${program_name} | ${program_college}]`);
+        const response = await fetch(`${API_URL}/programs`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ "code": program_code, "name": program_name, "college": program_college })
+        });
+        if (response.status === 201) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+            updateTableData();
+            clearFields();
+        } else {
+            const errorData = await response.json();
+            window.alert(errorData.error || `An unknown error has occured. STATUS ${response.status}`);
+        }
+    };
+
+    const submitEditButton = async (valueFuncs, inputValues, refreshFunc, visibilityFunc) => {
+        const oldCode = valueFuncs[0]?.[0];
+        if (!oldCode) return;
+
+        const newValues = inputValues;
+
+        if (newValues.some(val => !val || String(val).trim() === '')) {
+            window.alert("All fields must be filled out before submitting.");
+            return;
+        }
+
+        const isConfirm = window.confirm(`Are you sure you want to save these changes for item ${oldCode}?`);
+        if (isConfirm) {
+            const url = `${API_URL}/programs/edit/${oldCode}`;
+            console.log("Submitting edit request to:", url);
+
+            const response = await fetch(url, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ "code": newValues[0], "name": newValues[1], "college": newValues[2] })
+            });
+            if (response.ok) {
+                refreshFunc();
+                visibilityFunc();
+            } else {
+                const errorData = await response.json();
+                window.alert(errorData.error || `An unknown error has occurred. STATUS ${response.status}`);
+            }
+        }
+    };
+
+    const deleteFunc = async (valueFuncs, refreshFunc, visibilityFunc) => {
+        const oldCode = valueFuncs[0]?.[0];
+        if (!oldCode) return;
+
+        const isConfirm = window.confirm(`Are you sure you want to delete ${oldCode}?`);
+        if (isConfirm) {
+            const response = await fetch(`${API_URL}/programs/delete/${oldCode}`, {
+                method: 'DELETE'
+            });
+            if (response.ok) {
+                refreshFunc();
+                visibilityFunc();
+            } else {
+                const errorData = await response.json();
+                window.alert(errorData.error || `An unknown error has occurred. STATUS ${response.status}`);
+            }
+        }
+    }
+
+
     return (
         <>
             <InsertForm insert_form_name='Add Program' fields={[
@@ -98,7 +152,7 @@ export default function Programs() {
                 ["College: ", program_college, set_program_college]
             ]} submitFunc={submitForm} />
             
-            <Table table_name={tableName} header_name={'Program Table'} headers={attributes} table_data={table_data} refreshFunc={updateTableData} displayRefresh={displayRefresh} paginationFunctions={[page, setPage, maxPage]} searchFuncs={[ascending, setAscending, searchValue, setSearchValue, searchBy, setSearchBy]} />
+            <Table table_name={tableName} header_name={'Program Table'} headers={attributes} table_data={table_data} refreshFunc={updateTableData} displayRefresh={displayRefresh} paginationFunctions={[page, setPage, maxPage]} searchFuncs={[ascending, setAscending, searchValue, setSearchValue, searchBy, setSearchBy]} editDeleteFuncs={[submitEditButton, deleteFunc]} />
         </>
     )
 }

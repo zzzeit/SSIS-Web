@@ -1,9 +1,12 @@
 "use client";
 import { useEffect, useState } from 'react';
+import { uploadFile } from '@/utils/supaClient';
 import Table from '../page';
 import InsertForm from '../InsertForm';
 
 export default function Students() {
+    const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
     // State for the insert form fields
     const [id_num, set_id_num] = useState('');
     const [fname, set_fname] = useState('');
@@ -22,55 +25,12 @@ export default function Students() {
     const [searchBy, setSearchBy] = useState('id_num'); // Default search attribute
     const [networkError, setNetworkError] = useState(null);
 
+    // State for avatar
+    const [avatarFile, setAvatarFile] = useState(null);
+    const [avatarURL, setAvatarURL] = useState(null);
+
     // Headers for the table and search dropdown
     const headers = ["ID_Num", "Fname", "Lname", "Program", "Year", "Sex"];
-
-    const updateTableData = async () => {
-        setDisplayRefresh(true);
-        setNetworkError(null);
-        try {
-            let link = `http://192.168.1.50:5000/get/students/${searchBy}/${page}/${ascending}`;
-            if (searchValue.trim() !== '') {
-                link = `http://192.168.1.50:5000/search/students/${searchBy}/${searchValue}/${page}/${ascending}`;
-            }
-            
-            const response = await fetch(link);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const data = await response.json();
-            set_table_data(data[0]);
-            setMaxPage(data[1]);
-        } catch (error) {
-            console.error("Fetch error:", error);
-            setNetworkError("Failed to fetch data from the server. Please check your connection and if the server is running.");
-        } finally {
-            setDisplayRefresh(false);
-        }
-    };
-
-    const submitForm = async () => {
-        // Frontend validation
-        if (!id_num.trim() || !fname.trim() || !lname.trim() || !program_code.trim() || !year.trim() || !sex.trim()) {
-            window.alert("All fields must be filled out to add a student.");
-            return;
-        }
-        setNetworkError(null);
-        try {
-            const response = await fetch(`http://192.168.1.50:5000/insert/student/${id_num}/${fname}/${lname}/${program_code}/${year}/${sex}`);
-            if (response.ok) {
-                await new Promise(resolve => setTimeout(resolve, 100)); // Small delay for DB to update
-                updateTableData();
-                clearFields();
-            } else {
-                const errorData = await response.json();
-                setNetworkError(errorData.error || `An unknown error occurred. STATUS: ${response.status}`);
-            }
-        } catch (error) {
-            console.error("Submit error:", error);
-            setNetworkError("Failed to submit data. The server might be down.");
-        }
-    };
 
     const clearFields = () => {
         set_id_num('');
@@ -79,6 +39,8 @@ export default function Students() {
         set_program_code('');
         set_year('');
         set_sex('');
+        setAvatarFile(null);
+        setAvatarURL(null);
     };
 
     // Effect to fetch data when page, search, or sort criteria change
@@ -95,11 +57,117 @@ export default function Students() {
         }
     }, [page, maxPage]);
 
+    const updateTableData = async () => {
+        setDisplayRefresh(true);
+        setNetworkError(null);
+        try {
+            let link = `${API_URL}/students?attribute=${searchBy}&page=${page}&ascending=${ascending}&value=${searchValue}`;
+            
+            const response = await fetch(link);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            set_table_data(data[0]);
+            setMaxPage(data[1]);
+        } catch (error) {
+            console.error("Fetch error:", error);
+            setNetworkError("Failed to fetch data from the server. Please check your connection and if the server is running.");
+        } finally {
+            setDisplayRefresh(false);
+        }
+    };
+
+    const uploadAvatar = async () => {
+        if (!id_num || !avatarFile) return;
+        const remotePath = `${id_num.replace(/-/g, "")}`;
+        await uploadFile('profile-pictures', remotePath, avatarFile);
+    }
+
+    const submitForm = async () => {
+        // Frontend validation
+        if (!avatarFile) {
+            window.alert("Student needs a profile picture.");
+            return;
+        }
+        setNetworkError(null);
+        try {
+            const response = await fetch(`${API_URL}/students`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ "id_num": id_num, "fname": fname, "lname": lname, "program_code": program_code, "year": year, "sex": sex })
+            });
+            if (response.ok) {
+                await new Promise(resolve => setTimeout(resolve, 100)); // Small delay for DB to update
+                updateTableData();
+                clearFields();
+                uploadAvatar();
+            } else {
+                const errorData = await response.json();
+                setNetworkError(errorData.error || `An unknown error occurred. STATUS: ${response.status}`);
+            }
+        } catch (error) {
+            console.error("Submit error:", error);
+            setNetworkError("Failed to submit data. The server might be down.");
+        }
+    };
+
+    const submitEditButton = async (valueFuncs, inputValues, refreshFunc, visibilityFunc) => {
+        const oldCode = valueFuncs[0]?.[0];
+        if (!oldCode) return;
+
+        const newValues = inputValues;
+        if (newValues.some(val => !val || String(val).trim() === '')) {
+            window.alert("All fields must be filled out before submitting.");
+            return;
+        }
+
+        const isConfirm = window.confirm(`Are you sure you want to save these changes for item ${oldCode}?`);
+        if (isConfirm) {
+            const url = `${API_URL}/students/edit/${oldCode}`;
+            console.log("Submitting edit request to:", url);
+
+            const response = await fetch(url, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ "id_num": newValues[0], "fname": newValues[1], "lname": newValues[2], "program_code": newValues[3], "year": newValues[4], "sex": newValues[5] })
+            });
+            if (response.ok) {
+                refreshFunc();
+                visibilityFunc();
+                return true;
+            } else {
+                const errorData = await response.json();
+                window.alert(errorData.error || `An unknown error has occurred. STATUS ${response.status}`);
+            }
+        }
+    };
+
+    const deleteFunc = async (valueFuncs, refreshFunc, visibilityFunc) => {
+        const oldCode = valueFuncs[0]?.[0];
+        if (!oldCode) return;
+
+        const isConfirm = window.confirm(`Are you sure you want to delete ${oldCode}?`);
+        if (isConfirm) {
+            const response = await fetch(`${API_URL}/students/delete/${oldCode}`, {
+                method: 'DELETE'
+            });
+            if (response.ok) {
+                refreshFunc();
+                visibilityFunc();
+            } else {
+                const errorData = await response.json();
+                window.alert(errorData.error || `An unknown error has occurred. STATUS ${response.status}`);
+            }
+        }
+    }
+
     return (
         <>
             {networkError && <div style={{ color: 'red', textAlign: 'center', padding: '10px', border: '1px solid red', margin: '10px' }}>{networkError}</div>}
             
             <InsertForm 
+            insert_form_name='Insert Student'
                 fields={[
                     ["ID Number: ", id_num, set_id_num], 
                     ["First Name: ", fname, set_fname], 
@@ -109,6 +177,7 @@ export default function Students() {
                     ["Sex: ", sex, set_sex]
                 ]} 
                 submitFunc={submitForm} 
+                avatarUpdate={[avatarFile, setAvatarFile, avatarURL, setAvatarURL]}
             />
             
             <Table 
@@ -118,7 +187,8 @@ export default function Students() {
                 refreshFunc={updateTableData} 
                 displayRefresh={displayRefresh} 
                 paginationFunctions={[page, setPage, maxPage]} 
-                searchFuncs={[ascending, setAscending, searchValue, setSearchValue, searchBy, setSearchBy]} 
+                searchFuncs={[ascending, setAscending, searchValue, setSearchValue, searchBy, setSearchBy]}
+                editDeleteFuncs={[submitEditButton, deleteFunc]} 
             />
         </>
     )

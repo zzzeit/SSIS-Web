@@ -13,8 +13,6 @@
 }
 
 .pop-up {
-    /* display: none; */
-    padding-bottom: 10px;
     max-height: 600px;
     width: 500px;
     background-color: var(--color-background);
@@ -41,6 +39,8 @@
     width: fit-content;
     margin-left: auto;
     margin-right: auto;
+    margin-top: 10px;
+    margin-bottom: 10px;
 }
 
 .info-card-data,
@@ -53,11 +53,24 @@
 }
 
 .info-card-data input {
-    width: 300px;
+    width: 200px;
+}
+
+.info-card-data select, .info-card-data-editable select {
+    width: 200px;
+    appearance: none; /* For most browsers */
+    -webkit-appearance: none; /* For WebKit browsers */
+    -moz-appearance: none; /* For Firefox */
+    background-color: var(--color-background);
+    flex: 2;
+}
+
+.info-card-data-editable select {
+    border: 1px solid var(--border-color);
 }
 
 .info-card-data-editable input {
-    width: 300px;
+    width: 200px;
     border: 1px solid var(--border-color);
 }
 
@@ -68,4 +81,10 @@
     margin-left: auto;
     margin-right: auto;
     margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.submit-button:hover {
+    background-color: var(--color-emerald-500);
+    cursor: pointer;
 }
