@@ -1,6 +1,6 @@
 import './AvatarPicker.css';
 import { downloadFile } from '@/utils/supaClient';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 export default function AvatarPicker({ avatarUpdate = [], viewOnly = false, valueFuncs = null }) {
 
@@ -8,7 +8,6 @@ export default function AvatarPicker({ avatarUpdate = [], viewOnly = false, valu
 		const fetchAvatar = async () => {
 			if (valueFuncs) {
 				try {
-					console.log('Fetching avatar for ID:', valueFuncs[0][0]);
 					let avatarURL = await downloadFile('profile-pictures', `${valueFuncs[0][0]}`);
 					avatarURL = URL.createObjectURL(avatarURL);
 					avatarUpdate[3](avatarURL);
@@ -19,11 +18,6 @@ export default function AvatarPicker({ avatarUpdate = [], viewOnly = false, valu
 		};
 		fetchAvatar();
 	}, [valueFuncs]);
-	
-
-	useEffect(() => {
-		console.log('Avatar URL updated:', avatarUpdate[2]);
-	}, [avatarUpdate[2]]);
 
 	const openPicker = () => {
 		if (viewOnly) return;

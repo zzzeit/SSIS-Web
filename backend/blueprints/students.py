@@ -64,6 +64,7 @@ def list_students():
 # GET /students/<id_num>
 @students_bp.route("/students/<string:id_num>", methods=["GET"])
 def get_student(id_num):
+    id_num = id_num.replace("-", "")
     student = Student.query.get(id_num)
     if not student:
         return jsonify({"error": "Student not found"}), 404
@@ -129,8 +130,9 @@ def create_student():
 # PUT /students/<old_id_num>  body: { "id_num": "...", "fname": "...", "lname": "...", "program_code": "...", "year": 1, "sex": "M" }
 @students_bp.route("/students/edit/<string:old_id_num>", methods=["PUT"])
 def update_student(old_id_num):
+    old_id_num = old_id_num.replace("-", "")
     data = request.get_json(silent=True) or {}
-    new_id_num = data.get("id_num")
+    new_id_num = data.get("id_num").replace("-", "")
     fname = data.get("fname")
     lname = data.get("lname")
     program_code = data.get("program_code")
@@ -178,6 +180,7 @@ def update_student(old_id_num):
 # DELETE /students/<id_num>
 @students_bp.route("/students/delete/<string:id_num>", methods=["DELETE"])
 def delete_student(id_num):
+    id_num = id_num.replace("-", "")
     try:
         student = Student.query.get(id_num)
         if not student:

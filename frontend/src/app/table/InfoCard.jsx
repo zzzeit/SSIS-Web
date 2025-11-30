@@ -4,6 +4,7 @@ import HeaderButton from '../HeaderButton';
 import Image from 'next/image';
 import AvatarPicker from '@/components/AvatarPicker/AvatarPicker';
 import { useEffect, useState } from 'react';
+import { updateFile } from '@/utils/supaClient';
 
 export default function InfoCard({ table_name='', visibility, headers = [], valueFuncs = [], refreshFunc, editDeleteFuncs = [] }) {
     const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -16,7 +17,6 @@ export default function InfoCard({ table_name='', visibility, headers = [], valu
         visibility[1](false);
         setCanEdit(false);
         setInputValues([]);
-        console.log('Hiding InfoCard: ' + inputValues);
     };
 
     const submitEditButton = () => {
@@ -72,6 +72,7 @@ export default function InfoCard({ table_name='', visibility, headers = [], valu
                 </div>
 
                 <InfoCardDatas
+                    table_name={table_name}
                     headers={headers}
                     inputValues={inputValues}
                     handleInputChange={handleInputChange}
@@ -85,14 +86,16 @@ export default function InfoCard({ table_name='', visibility, headers = [], valu
 }
 
 // 4. Make InfoCardDatas dynamic by mapping over the values
-function InfoCardDatas({ headers, inputValues, handleInputChange, canEdit, submitButtonFunc, valueFuncs }) {
+function InfoCardDatas({ table_name, headers, inputValues, handleInputChange, canEdit, submitButtonFunc, valueFuncs }) {
     const [avatarFile, setAvatarFile] = useState(null);
     const [avatarURL, setAvatarURL] = useState(null);
 
     return (
         <>
             <div className='info-card-datas'>
-                <AvatarPicker avatarUpdate={[avatarFile, setAvatarFile, avatarURL, setAvatarURL]} viewOnly={!canEdit} valueFuncs={valueFuncs} />
+                {table_name === 'student' && (
+                    <AvatarPicker avatarUpdate={[avatarFile, setAvatarFile, avatarURL, setAvatarURL]} viewOnly={!canEdit} valueFuncs={valueFuncs} />
+                )}
                 {inputValues.map((value, index) => (
                     <InfoCardData
                         key={index}
@@ -104,7 +107,10 @@ function InfoCardDatas({ headers, inputValues, handleInputChange, canEdit, submi
                 ))}
             </div>
 
-            {canEdit && <button onClick={submitButtonFunc} className='submit-button'>Done</button>}
+            {canEdit && <button onClick={() => { 
+                updateFile('profile-pictures', valueFuncs[0][0].replace(/-/g, ""), inputValues[0].replace(/-/g, ""), avatarFile);
+                submitButtonFunc(); 
+            }} className='submit-button'>Done</button>}
         </>
     );
 }
