@@ -1,0 +1,5 @@
+# rename to .env and set your own values
+DATABASE_URL=
+FLASK_ENV=
+FLASK_DEBUG=
+JWT_SECRET_KEY=
