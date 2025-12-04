@@ -1,5 +1,5 @@
 # backend/blueprints/programs.py
-from flask import Blueprint, jsonify, current_app, request, url_for
+from flask import Blueprint, jsonify, current_app, request, send_from_directory, url_for
 from math import ceil
 from extensions import db
 from models import Program, College
@@ -8,6 +8,9 @@ from sqlalchemy import asc, desc
 
 programs_bp = Blueprint('programs', __name__)
 
+@programs_bp.route("/table/programs", methods=["GET"])
+def serve_program_page():
+    return send_from_directory(current_app.static_folder, ".next/server/app/table/programs.html")
 
 # ---- LIST / SEARCH ----
 # GET /programs?attribute=code&page=1&ascending=1&value=...

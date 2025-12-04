@@ -56,7 +56,7 @@ body::before {
   height: 100%;
   z-index: -1;
   
-  background-image: url('/geometric_pattern_2.png');
+  background-image: url('/media/geometric_pattern_2.png');
   background-size: 100%;
   background-position: center;
   background-repeat: no-repeat;

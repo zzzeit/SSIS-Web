@@ -1,5 +1,5 @@
 # backend/blueprints/students.py
-from flask import Blueprint, jsonify, current_app, request, url_for
+from flask import Blueprint, jsonify, current_app, request, send_from_directory, url_for
 from math import ceil
 from extensions import db
 from models import Student, Program
@@ -8,6 +8,9 @@ from sqlalchemy import asc, desc
 
 students_bp = Blueprint('students', __name__)
 
+@students_bp.route("/table/students", methods=["GET"])
+def serve_student_page():
+    return send_from_directory(current_app.static_folder, ".next/server/app/table/students.html")
 
 # ---- LIST / SEARCH ----
 # GET /students?attribute=id_num&page=1&ascending=1&value=...

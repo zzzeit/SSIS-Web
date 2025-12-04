@@ -42,7 +42,7 @@ function SearchBarComponent({headers=[], funcs=[]}) {
         <>
             <div className='search-div'>
                 <Button className='search-button' ascending={funcs[0]}>
-                    <Image src={'/sort.svg'} alt='sort button' width={25} height={25} style={{ filter: 'invert(1)' }} onClick={() => {
+                    <Image src={'/media/sort.svg'} alt='sort button' width={25} height={25} style={{ filter: 'invert(1)' }} onClick={() => {
                         funcs[1](funcs[0] === 1 ? 0 : 1)
                     }} />
                 </Button>
@@ -129,7 +129,7 @@ function Pagination({paginationFunctions=[]}) {
                                 paginationFunctions[1](parseInt(paginationFunctions[0]) - 1);                   
                             }                        
                         }} >
-                        <Image src={"/arrow-left.svg"} alt='previous page' width={24} height={24} style={{filter: 'var(--svg-inverse)'}} />
+                        <Image src={"/media/arrow-left.svg"} alt='previous page' width={24} height={24} style={{filter: 'var(--svg-inverse)'}} />
                     </HeaderButton>
 
                     <div className='pagination-input'>
@@ -146,7 +146,7 @@ function Pagination({paginationFunctions=[]}) {
                                 paginationFunctions[1](parseInt(paginationFunctions[0]) + 1);                   
                             }
                         }}>
-                        <Image src={"/arrow-left.svg"} alt='next page' width={24} height={24} style={{filter: 'var(--svg-inverse)', transform: 'rotate(180deg)'}} />
+                        <Image src={"/media/arrow-left.svg"} alt='next page' width={24} height={24} style={{filter: 'var(--svg-inverse)', transform: 'rotate(180deg)'}} />
                     </HeaderButton>
                 </div>
 

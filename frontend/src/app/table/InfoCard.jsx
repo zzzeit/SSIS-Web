@@ -57,17 +57,17 @@ export default function InfoCard({ table_name='', visibility, headers = [], valu
             <div className="pop-up">
                 <div className='header-pop-up'>
                     <HeaderButton onClick={visibilityFunc} style={{ borderTopRightRadius: '10px', width: '45px' }}>
-                        <Image src='/close.svg' alt='Close' width={28} height={28} style={{ filter: 'var(--svg-inverse)' }} />
+                        <Image src='/media/close.svg' alt='Close' width={28} height={28} style={{ filter: 'var(--svg-inverse)' }} />
                     </HeaderButton>
                     <HeaderButton onClick={deleteFunc} style={{ width: '45px' }}>
-                        <Image src={'/trash.svg'} alt='Trash' width={28} height={28} style={{ filter: 'var(--svg-inverse)' }} />
+                        <Image src={'/media/trash.svg'} alt='Trash' width={28} height={28} style={{ filter: 'var(--svg-inverse)' }} />
                     </HeaderButton>
                     <HeaderButton onClick={() => {
                         // Reset inputs to original values when toggling edit mode
                         setInputValues(valueFuncs[0]);
                         setCanEdit(!canEdit);
                     }} style={{ width: '45px' }}>
-                        <Image src={'/edit.svg'} alt='Edit' width={28} height={28} style={{ filter: 'var(--svg-inverse)' }} />
+                        <Image src={'/media/edit.svg'} alt='Edit' width={28} height={28} style={{ filter: 'var(--svg-inverse)' }} />
                     </HeaderButton>
                 </div>
 

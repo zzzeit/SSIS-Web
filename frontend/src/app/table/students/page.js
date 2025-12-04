@@ -104,6 +104,7 @@ export default function Students() {
                 uploadAvatar();
             } else {
                 const errorData = await response.json();
+                console.error("Submit error response:", errorData);
                 setNetworkError(errorData.error || `An unknown error occurred. STATUS: ${response.status}`);
             }
         } catch (error) {

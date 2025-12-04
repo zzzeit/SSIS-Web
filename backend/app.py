@@ -1,18 +1,15 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
-from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy import asc, desc, ForeignKey
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import create_access_token, JWTManager
-from math import ceil
 from config import BaseConfig
 import os
 
 from dotenv import load_dotenv
 load_dotenv(dotenv_path='./.env')
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder=os.path.join('static'), static_url_path='/static')
 app.config.from_object(BaseConfig)
 CORS(app)
 bcrypt = Bcrypt(app)
@@ -59,6 +56,11 @@ def register_user():
         print(f"An error occurred during registration: {e}")
         return jsonify({"error": "An unexpected error occurred."}), 500
 
+# Serve the login page
+@app.route("/login", methods=["GET"])
+def serve_login_page():
+    return send_from_directory(app.static_folder, ".next/server/app/login.html")
+
 @app.route("/login", methods=['POST'])
 def login_user():
     data = request.get_json()
@@ -77,6 +79,23 @@ def login_user():
         return jsonify(access_token=access_token), 200
     
     return jsonify({"error": "Invalid username or password."}), 401
+
+@app.route("/")
+def serve_index():
+    return send_from_directory(os.path.join(app.static_folder, ".next", "server", "app"), "index.html")
+
+@app.route("/about")
+def serve_about():
+    return send_from_directory(os.path.join(app.static_folder, ".next", "server", "app"), "about.html")
+
+@app.route("/_next/static/<path:path>")
+def serve_static_assets(path):
+    return send_from_directory(os.path.join('static', '.next', 'static'), path)
+
+@app.route("/media/<path:filename>", methods=["GET"])
+def serve_static_files(filename):
+    print(f"Serving static file: {filename}")
+    return send_from_directory(app.static_folder, 'media/' + filename)
 
 if __name__ == "__main__":
     app.run(host=BaseConfig.HOST, port=BaseConfig.PORT, debug=BaseConfig.DEBUG)

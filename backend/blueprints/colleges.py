@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify, current_app, url_for
+from flask import Blueprint, request, jsonify, current_app, url_for, send_from_directory
 from math import ceil
 from extensions import db
 from models import College
@@ -6,6 +6,11 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy import asc, desc
 
 colleges_bp = Blueprint('colleges', __name__)
+
+@colleges_bp.route("/table/colleges", methods=["GET"])
+def serve_college_page():
+    return send_from_directory(current_app.static_folder, ".next/server/app/table/colleges.html")
+
 
 # ---- LIST / SEARCH ----
 # GET /colleges?attribute=code&page=1&ascending=1
