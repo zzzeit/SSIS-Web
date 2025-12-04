@@ -56,7 +56,11 @@ def register_user():
         print(f"An error occurred during registration: {e}")
         return jsonify({"error": "An unexpected error occurred."}), 500
 
-# Serve the login page
+
+@app.route("/register", methods=["GET"])
+def serve_register_page():
+    return send_from_directory(app.static_folder, ".next/server/app/register.html")
+
 @app.route("/login", methods=["GET"])
 def serve_login_page():
     return send_from_directory(app.static_folder, ".next/server/app/login.html")
