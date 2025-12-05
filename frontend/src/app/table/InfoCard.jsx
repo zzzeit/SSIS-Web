@@ -107,7 +107,7 @@ function InfoCardDatas({ table_name, headers, inputValues, handleInputChange, ca
                 ))}
             </div>
 
-            {canEdit && <button onClick={() => {
+            {canEdit && <button onClick={async () => {
 
                 if (table_name === 'student') {
                     const newValues = inputValues;
@@ -123,7 +123,11 @@ function InfoCardDatas({ table_name, headers, inputValues, handleInputChange, ca
                         window.alert("Year must be numeric.");
                         return;
                     } else {
-                        updateFile('profile-pictures', valueFuncs[0][0].replace(/-/g, ""), inputValues[0].replace(/-/g, ""), avatarFile);
+                        const response = await updateFile('profile-pictures', valueFuncs[0][0].replace(/-/g, ""), inputValues[0].replace(/-/g, ""), avatarFile);
+                        if (!response) {
+                            window.alert("Failed to upload avatar. Edit student failed.");
+                            return;
+                        }
                         submitButtonFunc(); 
                     }
                 } else {

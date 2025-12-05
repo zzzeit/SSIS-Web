@@ -13,8 +13,10 @@ async function uploadFile(bucketName, filePath, file) {
 
 	if (error) {
 		console.error('Error uploading file:', error);
+        return null;
 	} else {
 		console.log('File uploaded successfully:', data);
+        return data;
 	}
 }
 
@@ -25,6 +27,7 @@ async function downloadFile(bucketName, filePath) {
 
 	if (error) {
 		console.error('Error downloading file:', error);
+        return null;
 	} else {
 		console.log('File downloaded successfully:', data);
 		return data;
@@ -74,8 +77,10 @@ async function updateFile(bucketName, oldFileName, newFileName, newFile) {
 		if (newFile) {
 			await uploadFile(bucketName, newFileName, newFile);
 		}
+        return true;
 	} catch (error) {
 		console.error('Error updating file:', error.message);
+        return null;
 	}
 }
 

@@ -81,17 +81,23 @@ export default function Students() {
     const uploadAvatar = async () => {
         if (!id_num || !avatarFile) return;
         const remotePath = `${id_num.replace(/-/g, "")}`;
-        await uploadFile('profile-pictures', remotePath, avatarFile);
+        const response = await uploadFile('profile-pictures', remotePath, avatarFile);
+        if (!response) {
+            return false;
+        }
+        return true;
     }
 
     const submitForm = async () => {
-        // Frontend validation
-        if (!avatarFile) {
-            window.alert("Student needs a profile picture.");
-            return;
-        }
         setNetworkError(null);
         try {
+            if (!avatarFile) {
+                window.alert("Student needs a profile picture.");
+                return;
+            } else if (!(await uploadAvatar())) {
+                window.alert("Failed to upload avatar. Insert student failed.");
+                return;
+            }
             const response = await fetch(`${API_URL}/students`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -101,7 +107,6 @@ export default function Students() {
                 await new Promise(resolve => setTimeout(resolve, 100)); // Small delay for DB to update
                 updateTableData();
                 clearFields();
-                uploadAvatar();
             } else {
                 const errorData = await response.json();
                 console.error("Submit error response:", errorData);
