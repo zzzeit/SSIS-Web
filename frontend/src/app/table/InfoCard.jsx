@@ -3,6 +3,7 @@ import './InfoCard.css'
 import HeaderButton from '../HeaderButton';
 import Image from 'next/image';
 import AvatarPicker from '@/components/AvatarPicker/AvatarPicker';
+import { deleteFile } from '@/utils/supaClient';
 import { useEffect, useState } from 'react';
 import { updateFile } from '@/utils/supaClient';
 
@@ -25,7 +26,11 @@ export default function InfoCard({ table_name='', visibility, headers = [], valu
         }
     };
 
-    const deleteFunc = () => {
+    const deleteFunc = async () => {
+        if (!await deleteFile('profile-pictures', `${valueFuncs[0][0].replace(/-/g, "")}`)) {
+            console.error("Failed to delete profile picture.");
+            return;
+        }
         if (typeof editDeleteFuncs[1] === 'function') {
             editDeleteFuncs[1](valueFuncs, refreshFunc, visibilityFunc);
         }

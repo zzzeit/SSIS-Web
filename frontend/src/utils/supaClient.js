@@ -84,4 +84,16 @@ async function updateFile(bucketName, oldFileName, newFileName, newFile) {
 	}
 }
 
-export { uploadFile, downloadFile, renameFile, updateFile };
+async function deleteFile(bucketName, filePath) {
+    const { data, error } = await supabase.storage
+        .from(bucketName)
+        .remove([filePath]);
+        if (error) {
+            console.error('Error deleting file:', error);
+            return null;
+        }
+        console.log('File deleted successfully:', data);
+        return data;
+}
+
+export { uploadFile, downloadFile, renameFile, updateFile, deleteFile };
