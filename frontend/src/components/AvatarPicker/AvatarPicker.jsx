@@ -29,6 +29,11 @@ export default function AvatarPicker({ avatarUpdate = [], viewOnly = false, valu
 		input.style.display = "none";
 		input.addEventListener("change", () => {
 			const file = input.files && input.files[0];
+			const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+			if (file && file.size > MAX_FILE_SIZE) {
+				alert("File size exceeds the maximum limit of 5MB.");
+				return;
+			}
 			if (file) {
 				if (file.type !== "image/jpeg") {
 					alert("Only JPEG files are allowed.");

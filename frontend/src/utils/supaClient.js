@@ -7,6 +7,15 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 async function uploadFile(bucketName, filePath, file) {
+
+    const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+
+    if (file.size > MAX_FILE_SIZE) {
+        console.error('Error: File size exceeds the maximum limit of 5MB.');
+        window.alert('File size exceeds the maximum limit of 5MB.');
+        return null;
+    }
+
 	const { data, error } = await supabase.storage
 		.from(bucketName)
 		.upload(filePath, file, { upsert: true });
