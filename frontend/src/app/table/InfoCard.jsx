@@ -128,12 +128,12 @@ function InfoCardDatas({ table_name, headers, inputValues, handleInputChange, ca
                         window.alert("Year must be numeric.");
                         return;
                     } else {
+                        submitButtonFunc(); 
                         const response = await updateFile('profile-pictures', valueFuncs[0][0].replace(/-/g, ""), inputValues[0].replace(/-/g, ""), avatarFile);
                         if (!response) {
                             window.alert("Failed to upload avatar. Edit student failed.");
                             return;
                         }
-                        submitButtonFunc(); 
                     }
                 } else {
                     submitButtonFunc(); 

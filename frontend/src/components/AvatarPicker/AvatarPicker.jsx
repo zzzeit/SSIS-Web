@@ -51,7 +51,8 @@ export default function AvatarPicker({ avatarUpdate = [], viewOnly = false, valu
 			{avatarUpdate[2] ? (
 				<img src={avatarUpdate[2]} alt="avatar" />
 			) : loading ? (
-				<Lottie animationData={loadingIcon} style={{ width: 50, height: 50 }} loop autoPlay />
+				// <Lottie animationData={loadingIcon} style={{ width: 50, height: 50 }} loop autoPlay />
+				<img src='https://cdn-icons-png.flaticon.com/128/9308/9308008.png' alt='default avatar' />
 			) : (
 				<svg width={100 * 0.5} height={100 * 0.5} viewBox="0 0 24 24" fill="none" aria-hidden>
 					<circle cx="12" cy="8" r="3.2" fill="#bbb" />

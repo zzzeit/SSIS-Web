@@ -101,12 +101,8 @@ export default function Students() {
     const submitForm = async () => {
         setNetworkError(null);
         try {
-            if (!avatarFile) {
-                window.alert("Student needs a profile picture.");
-                return;
-            } else if (!(await uploadAvatar())) {
-                window.alert("Failed to upload avatar. Insert student failed.");
-                return;
+            if (!(await uploadAvatar())) {
+                // window.alert("Failed to upload avatar");
             }
             const response = await fetch(`${API_URL}/students`, {
                 method: 'POST',
