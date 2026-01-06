@@ -6,7 +6,11 @@ from flask_bcrypt import Bcrypt
 from flask_jwt_extended import create_access_token, JWTManager
 from config import BaseConfig
 import os
-
+from extensions import get_db_connection
+from blueprints import colleges, programs, students
+from routes.colleges import colleges_bp
+from routes.programs import programs_bp
+from routes.students import students_bp
 from dotenv import load_dotenv
 load_dotenv(dotenv_path='./.env')
 
@@ -16,53 +20,9 @@ CORS(app)
 bcrypt = Bcrypt(app)
 jwt = JWTManager(app)
 
-from extensions import get_db_connection
-
-# Initialize Database Tables
-def init_db():
-    conn = get_db_connection()
-    cur = conn.cursor()
-    try:
-        cur.execute("""
-            CREATE TABLE IF NOT EXISTS college (
-                code VARCHAR(30) PRIMARY KEY,
-                name VARCHAR(80) NOT NULL
-            );
-            CREATE TABLE IF NOT EXISTS program (
-                code VARCHAR(30) PRIMARY KEY,
-                name VARCHAR(80) NOT NULL,
-                college VARCHAR(30),
-                FOREIGN KEY (college) REFERENCES college(code) ON DELETE SET NULL ON UPDATE CASCADE
-            );
-            CREATE TABLE IF NOT EXISTS student (
-                id_num VARCHAR(8) PRIMARY KEY,
-                fname VARCHAR(50) NOT NULL,
-                lname VARCHAR(50) NOT NULL,
-                program_code VARCHAR(30),
-                year INTEGER NOT NULL,
-                sex VARCHAR(10) NOT NULL,
-                FOREIGN KEY (program_code) REFERENCES program(code) ON DELETE SET NULL ON UPDATE CASCADE
-            );
-            CREATE TABLE IF NOT EXISTS "user" (
-                username VARCHAR(80) PRIMARY KEY,
-                password VARCHAR(120) NOT NULL
-            );
-        """)
-        conn.commit()
-    except Exception as e:
-        print(f"Error creating tables: {e}")
-    finally:
-        cur.close()
-        conn.close()
-
-with app.app_context():
-    init_db()
-
-from blueprints import colleges, programs, students
 app.register_blueprint(colleges.colleges_bp)
 app.register_blueprint(programs.programs_bp)
 app.register_blueprint(students.students_bp)
-
 @app.route("/register", methods=['POST'])
 def register_user():
     conn = get_db_connection()
