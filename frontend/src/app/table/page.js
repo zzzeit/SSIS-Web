@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import './table.css'
 import InfoCard from './InfoCard';
+import StudentFilter from './StudentFilter/StudentFilter';
 import HeaderButton from '../HeaderButton';
 import Image from 'next/image';
 import Lottie from 'lottie-react';
@@ -9,15 +10,18 @@ import loadingIcon from './loading.json';
 import Button from '../Button';
 import LogoutButton from './LogoutButton';
 
-export default function Table({ table_name="Table", header_name="", headers=["header1", "header2", "header3"], table_data=[], refreshFunc, displayRefresh, paginationFunctions=[], searchFuncs=[], editDeleteFuncs=[] }) {
+export default function Table({ table_name="Table", header_name="", headers=["header1", "header2", "header3"], table_data=[], refreshFunc, displayRefresh, paginationFunctions=[], searchFuncs=[], editDeleteFuncs=[], StudentFilters=[] }) {
 
     const [visibleInfoCard, setVisibleInfoCard] = useState(false);
+    const [visibleStudentFilter, setVisibleStudentFilter] = useState(true);
     const [selectedRow, setSelectedRow] = useState([]);
 
     return (
     <>
         <InfoCard table_name={table_name} headers={headers} visibility={[visibleInfoCard, setVisibleInfoCard]} valueFuncs={[selectedRow, setSelectedRow]} refreshFunc={refreshFunc} editDeleteFuncs={editDeleteFuncs} />
-
+        <StudentFilter StudentFilters={StudentFilters} visibility={[visibleStudentFilter, setVisibleStudentFilter]} />
+        
+        
         <div className='table-header'>
             <label>{header_name}</label>
             {/* <HeaderButton className='inline right-auto'>
@@ -25,7 +29,7 @@ export default function Table({ table_name="Table", header_name="", headers=["he
             </HeaderButton> */}
         </div>
 
-        <SearchBarComponent headers={headers} funcs={searchFuncs} />
+        <SearchBarComponent headers={headers} funcs={searchFuncs} StudentFilterVisibility={[visibleStudentFilter, setVisibleStudentFilter]} />
 
         <TableComponent headers={headers} table_data={table_data} setFunctions={[setVisibleInfoCard, setSelectedRow]} displayRefresh={displayRefresh} paginationFunctions={paginationFunctions} />
 
@@ -36,7 +40,7 @@ export default function Table({ table_name="Table", header_name="", headers=["he
     )
 }
 
-function SearchBarComponent({headers=[], funcs=[]}) {
+function SearchBarComponent({headers=[], funcs=[], StudentFilterVisibility=[]}) {
 
     return (
         <>
@@ -56,6 +60,12 @@ function SearchBarComponent({headers=[], funcs=[]}) {
                 <input placeholder='Search' onChange={(e) => {
                     funcs[3](e.target.value)
                 }} />
+                <Button className='search-button' >
+                    <img src='https://cdn-icons-png.flaticon.com/128/2676/2676824.png' alt='filter icon' style={{width: 25, height: 25, filter: 'invert(1)'}} onClick={() => {
+                    StudentFilterVisibility[1](true);
+                    console.log('Filter button clicked');
+                }} />
+                </Button>
             </div>
         </>
     );

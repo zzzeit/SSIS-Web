@@ -32,6 +32,9 @@ export default function Students() {
     // Headers for the table and search dropdown
     const headers = ["ID_Num", "Fname", "Lname", "Program", "Year", "Sex"];
 
+    // Filters
+    const [StudentFilters, setStudentFilters] = useState({});
+
     const clearFields = () => {
         set_id_num('');
         set_fname('');
@@ -195,6 +198,7 @@ export default function Students() {
                 paginationFunctions={[page, setPage, maxPage]} 
                 searchFuncs={[ascending, setAscending, searchValue, setSearchValue, searchBy, setSearchBy]}
                 editDeleteFuncs={[submitEditButton, deleteFunc]} 
+                StudentFilters={[StudentFilters, setStudentFilters]}
             />
         </>
     )
