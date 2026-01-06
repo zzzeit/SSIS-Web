@@ -7,7 +7,6 @@ from flask_jwt_extended import create_access_token, JWTManager
 from config import BaseConfig
 import os
 from extensions import get_db_connection
-from blueprints import colleges, programs, students
 from routes.colleges import colleges_bp
 from routes.programs import programs_bp
 from routes.students import students_bp
@@ -20,9 +19,9 @@ CORS(app)
 bcrypt = Bcrypt(app)
 jwt = JWTManager(app)
 
-app.register_blueprint(colleges.colleges_bp)
-app.register_blueprint(programs.programs_bp)
-app.register_blueprint(students.students_bp)
+app.register_blueprint(colleges_bp)
+app.register_blueprint(programs_bp)
+app.register_blueprint(students_bp)
 @app.route("/register", methods=['POST'])
 def register_user():
     conn = get_db_connection()
