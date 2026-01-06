@@ -1,9 +1,14 @@
 import './StudentFilter.css'
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function StudentFilter({ StudentFilters=[], visibility=[] }) {
     const [selectValue, setSelectValue] = useState('Program');
     const [inputValue, setInputValue] = useState('');
+
+    useEffect(() => {
+        setSelectValue('Program');
+        setInputValue('');
+    }, [visibility[0]]);
 
     return (
         <>

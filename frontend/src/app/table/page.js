@@ -1,5 +1,5 @@
 "use client";
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import './table.css'
 import InfoCard from './InfoCard';
 import StudentFilter from './StudentFilter/StudentFilter';
@@ -13,8 +13,15 @@ import LogoutButton from './LogoutButton';
 export default function Table({ table_name="Table", header_name="", headers=["header1", "header2", "header3"], table_data=[], refreshFunc, displayRefresh, paginationFunctions=[], searchFuncs=[], editDeleteFuncs=[], StudentFilters=[] }) {
 
     const [visibleInfoCard, setVisibleInfoCard] = useState(false);
-    const [visibleStudentFilter, setVisibleStudentFilter] = useState(true);
+    const [visibleStudentFilter, setVisibleStudentFilter] = useState(false);
     const [selectedRow, setSelectedRow] = useState([]);
+
+    useEffect(() => {
+        if (visibleStudentFilter === false) {
+            refreshFunc();
+        }
+        
+    }, [visibleStudentFilter]);
 
     return (
     <>
@@ -60,12 +67,15 @@ function SearchBarComponent({headers=[], funcs=[], StudentFilterVisibility=[]}) 
                 <input placeholder='Search' onChange={(e) => {
                     funcs[3](e.target.value)
                 }} />
-                <Button className='search-button' >
-                    <img src='https://cdn-icons-png.flaticon.com/128/2676/2676824.png' alt='filter icon' style={{width: 25, height: 25, filter: 'invert(1)'}} onClick={() => {
-                    StudentFilterVisibility[1](true);
-                    console.log('Filter button clicked');
-                }} />
-                </Button>
+                {headers[0]==="ID_Num" && (
+                    <Button className='search-button' >
+                        <img src='https://cdn-icons-png.flaticon.com/128/2676/2676824.png' alt='filter icon' style={{width: 25, height: 25, filter: 'invert(1)', transform: 'rotate(180deg)'}} onClick={() => {
+                        StudentFilterVisibility[1](true);
+                        console.log('Filter button clicked');
+                    }} />
+                    </Button>    
+                )}
+                
             </div>
         </>
     );

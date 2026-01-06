@@ -65,7 +65,14 @@ export default function Students() {
         setNetworkError(null);
         try {
             let link = `${API_URL}/students?attribute=${searchBy}&page=${page}&ascending=${ascending}&value=${searchValue}`;
-            
+
+            // Add filters as query params
+            Object.entries(StudentFilters).forEach(([key, value]) => {
+                if (value && value !== "") {
+                    link += `&${encodeURIComponent(key)}=${encodeURIComponent(value)}`;
+                }
+            });
+
             const response = await fetch(link);
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
