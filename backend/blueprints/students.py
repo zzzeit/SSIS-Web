@@ -1,10 +1,8 @@
-# backend/blueprints/students.py
 from flask import Blueprint, jsonify, current_app, request, send_from_directory, url_for
 from math import ceil
-from extensions import db
-from models import Student, Program
-from sqlalchemy.exc import IntegrityError
-from sqlalchemy import asc, desc
+from extensions import get_db_connection
+import psycopg2
+from psycopg2.extras import RealDictCursor
 
 students_bp = Blueprint('students', __name__)
 
@@ -16,51 +14,67 @@ def serve_student_page():
 # GET /students?attribute=id_num&page=1&ascending=1&value=...
 @students_bp.route("/students", methods=["GET"])
 def list_students():
+    conn = get_db_connection()
+    cur = conn.cursor()
     try:
         attribute = request.args.get("attribute", "id_num")
         page = int(request.args.get("page", 1))
         ascending = int(request.args.get("ascending", 1))
 
         sort_map = {
-            'id_num': Student.id_num,
-            'fname': Student.fname,
-            'lname': Student.lname,
-            'program': Student.program_code,
-            'year': Student.year,
-            'sex': Student.sex
+            'id_num': 'id_num',
+            'fname': 'fname',
+            'lname': 'lname',
+            'program': 'program_code',
+            'year': 'year',
+            'sex': 'sex'
         }
-        att = sort_map.get(attribute.lower(), Student.id_num)
-
-        order = desc(att) if ascending == 0 else asc(att)
+        sort_col = sort_map.get(attribute.lower(), 'id_num')
+        order = "ASC" if ascending == 1 else "DESC"
         per_page = 14
+        offset = (page - 1) * per_page
+
+        query = "SELECT id_num, fname, lname, program_code, year, sex FROM student"
+        count_query = "SELECT COUNT(*) FROM student"
+        where_clause = ""
+        params = []
 
         value = request.args.get("value")
         if value:
-            search_pattern = f"%{value}%"
             if attribute.lower() == 'year':
                 # year search expects exact integer
                 try:
                     year_val = int(value)
+                    where_clause = " WHERE year = %s"
+                    params.append(year_val)
                 except ValueError:
                     return jsonify({"error": "Invalid year value"}), 400
-                base_query = Student.query.filter(Student.year == year_val)
             else:
-                col = sort_map.get(attribute.lower(), Student.id_num)
-                base_query = Student.query.filter(col.ilike(search_pattern))
+                where_clause = f" WHERE {sort_col} ILIKE %s"
+                params.append(f"%{value}%")
 
-            total = base_query.count()
-            items = base_query.order_by(order).offset((page - 1) * per_page).limit(per_page).all()
-        else:
-            total = Student.query.count()
-            items = Student.query.order_by(order).offset((page - 1) * per_page).limit(per_page).all()
+        # Get total count
+        cur.execute(count_query + where_clause, tuple(params))
+        total = cur.fetchone()[0]
+
+        # Get items
+        full_query = f"{query}{where_clause} ORDER BY {sort_col} {order} LIMIT %s OFFSET %s"
+        params.extend([per_page, offset])
+        
+        cur.execute(full_query, tuple(params))
+        items = cur.fetchall()
 
         total_pages = ceil(total / per_page) if total > 0 else 0
-        result = [[s.id_num, s.fname, s.lname, s.program_code, s.year, s.sex] for s in items]
+        # Convert tuples to list of lists to match original format
+        result = [list(item) for item in items]
         return jsonify([result, total_pages]), 200
 
     except Exception:
         current_app.logger.exception("list_students failed")
         return jsonify({"error": "An unexpected error occurred on the server."}), 500
+    finally:
+        cur.close()
+        conn.close()
 
 
 # ---- GET single ----
@@ -68,17 +82,20 @@ def list_students():
 @students_bp.route("/students/<string:id_num>", methods=["GET"])
 def get_student(id_num):
     id_num = id_num.replace("-", "")
-    student = Student.query.get(id_num)
-    if not student:
-        return jsonify({"error": "Student not found"}), 404
-    return jsonify({
-        "id_num": student.id_num,
-        "fname": student.fname,
-        "lname": student.lname,
-        "program_code": student.program_code,
-        "year": student.year,
-        "sex": student.sex
-    }), 200
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    try:
+        cur.execute("SELECT * FROM student WHERE id_num = %s", (id_num,))
+        student = cur.fetchone()
+        if not student:
+            return jsonify({"error": "Student not found"}), 404
+        return jsonify(student), 200
+    except Exception:
+        current_app.logger.exception("get_student failed")
+        return jsonify({"error": "An unexpected error occurred on the server."}), 500
+    finally:
+        cur.close()
+        conn.close()
 
 
 # ---- CREATE ----
@@ -86,7 +103,7 @@ def get_student(id_num):
 @students_bp.route("/students", methods=["POST"])
 def create_student():
     data = request.get_json(silent=True) or {}
-    id_num = data.get("id_num").replace("-", "")
+    id_num = data.get("id_num", "").replace("-", "")
     fname = data.get("fname")
     lname = data.get("lname")
     program_code = data.get("program_code")
@@ -103,37 +120,36 @@ def create_student():
     except ValueError:
         return jsonify({"error": "Year must be an integer"}), 400
 
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
     try:
-        if not Program.query.get(program_code):
+        # Check if program exists
+        cur.execute("SELECT 1 FROM program WHERE code = %s", (program_code,))
+        if not cur.fetchone():
             return jsonify({"error": f"Program with code '{program_code}' does not exist."}), 400
 
-        new_student = Student(
-            id_num=id_num,
-            fname=fname,
-            lname=lname,
-            program_code=program_code,
-            year=int(year),
-            sex=sex
-        )
-        db.session.add(new_student)
-        db.session.commit()
-        location = url_for('.get_student', id_num=new_student.id_num, _external=False)
-        return jsonify({
-            "id_num": new_student.id_num,
-            "fname": new_student.fname,
-            "lname": new_student.lname,
-            "program_code": new_student.program_code,
-            "year": new_student.year,
-            "sex": new_student.sex
-        }), 201, {"Location": location}
+        cur.execute("""
+            INSERT INTO student (id_num, fname, lname, program_code, year, sex)
+            VALUES (%s, %s, %s, %s, %s, %s)
+            RETURNING id_num, fname, lname, program_code, year, sex
+        """, (id_num, fname, lname, program_code, year, sex))
+        
+        new_student = cur.fetchone()
+        conn.commit()
+        
+        location = url_for('.get_student', id_num=new_student['id_num'], _external=False)
+        return jsonify(new_student), 201, {"Location": location}
 
-    except IntegrityError:
-        db.session.rollback()
+    except psycopg2.IntegrityError:
+        conn.rollback()
         return jsonify({"error": f"Student with ID '{id_num}' already exists."}), 409
     except Exception:
-        db.session.rollback()
+        conn.rollback()
         current_app.logger.exception("create_student failed")
         return jsonify({"error": "An unexpected error occurred on the server."}), 500
+    finally:
+        cur.close()
+        conn.close()
 
 
 # ---- UPDATE ----
@@ -142,7 +158,7 @@ def create_student():
 def update_student(old_id_num):
     old_id_num = old_id_num.replace("-", "")
     data = request.get_json(silent=True) or {}
-    new_id_num = data.get("id_num").replace("-", "")
+    new_id_num = data.get("id_num", "").replace("-", "")
     fname = data.get("fname")
     lname = data.get("lname")
     program_code = data.get("program_code")
@@ -159,38 +175,40 @@ def update_student(old_id_num):
     except ValueError:
         return jsonify({"error": "Year must be an integer"}), 400
     
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
     try:
-        student = Student.query.get(old_id_num)
-        if not student:
+        # Check if student exists
+        cur.execute("SELECT 1 FROM student WHERE id_num = %s", (old_id_num,))
+        if not cur.fetchone():
             return jsonify({"error": "Student not found"}), 404
 
-        if not Program.query.get(program_code):
+        # Check if program exists
+        cur.execute("SELECT 1 FROM program WHERE code = %s", (program_code,))
+        if not cur.fetchone():
             return jsonify({"error": f"Program with code '{program_code}' does not exist."}), 400
 
-        student.id_num = new_id_num
-        student.fname = fname
-        student.lname = lname
-        student.program_code = program_code
-        student.year = int(year)
-        student.sex = sex
+        cur.execute("""
+            UPDATE student
+            SET id_num = %s, fname = %s, lname = %s, program_code = %s, year = %s, sex = %s
+            WHERE id_num = %s
+            RETURNING id_num, fname, lname, program_code, year, sex
+        """, (new_id_num, fname, lname, program_code, year, sex, old_id_num))
+        
+        updated_student = cur.fetchone()
+        conn.commit()
+        return jsonify(updated_student), 200
 
-        db.session.commit()
-        return jsonify({
-            "id_num": student.id_num,
-            "fname": student.fname,
-            "lname": student.lname,
-            "program_code": student.program_code,
-            "year": student.year,
-            "sex": student.sex
-        }), 200
-
-    except IntegrityError:
-        db.session.rollback()
+    except psycopg2.IntegrityError:
+        conn.rollback()
         return jsonify({"error": f"A student with ID '{new_id_num}' already exists."}), 409
     except Exception:
-        db.session.rollback()
+        conn.rollback()
         current_app.logger.exception("update_student failed")
         return jsonify({"error": "An unexpected error occurred on the server."}), 500
+    finally:
+        cur.close()
+        conn.close()
 
 
 # ---- DELETE ----
@@ -198,14 +216,18 @@ def update_student(old_id_num):
 @students_bp.route("/students/delete/<string:id_num>", methods=["DELETE"])
 def delete_student(id_num):
     id_num = id_num.replace("-", "")
+    conn = get_db_connection()
+    cur = conn.cursor()
     try:
-        student = Student.query.get(id_num)
-        if not student:
+        cur.execute("DELETE FROM student WHERE id_num = %s RETURNING id_num", (id_num,))
+        if not cur.fetchone():
             return jsonify({"error": "Student not found"}), 404
-        db.session.delete(student)
-        db.session.commit()
+        conn.commit()
         return "", 204
     except Exception:
-        db.session.rollback()
+        conn.rollback()
         current_app.logger.exception("delete_student failed")
         return jsonify({"error": "An unexpected error occurred on the server."}), 500
+    finally:
+        cur.close()
+        conn.close()

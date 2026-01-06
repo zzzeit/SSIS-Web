@@ -1,10 +1,8 @@
-# backend/blueprints/programs.py
 from flask import Blueprint, jsonify, current_app, request, send_from_directory, url_for
 from math import ceil
-from extensions import db
-from models import Program, College
-from sqlalchemy.exc import IntegrityError
-from sqlalchemy import asc, desc
+from extensions import get_db_connection
+import psycopg2
+from psycopg2.extras import RealDictCursor
 
 programs_bp = Blueprint('programs', __name__)
 
@@ -16,54 +14,74 @@ def serve_program_page():
 # GET /programs?attribute=code&page=1&ascending=1&value=...
 @programs_bp.route("/programs", methods=["GET"])
 def list_programs():
+    conn = get_db_connection()
+    cur = conn.cursor()
     try:
         attribute = request.args.get("attribute", "code")
         page = int(request.args.get("page", 1))
         ascending = int(request.args.get("ascending", 1))
 
-        if attribute.lower() == 'name':
-            att = Program.name
-        elif attribute.lower() == 'college':
-            att = Program.college
-        else:
-            att = Program.code
-
-        order = desc(att) if ascending == 0 else asc(att)
+        sort_map = {
+            'code': 'code',
+            'name': 'name',
+            'college': 'college'
+        }
+        sort_col = sort_map.get(attribute.lower(), 'code')
+        order = "ASC" if ascending == 1 else "DESC"
         per_page = 14
+        offset = (page - 1) * per_page
+
+        query = "SELECT code, name, college FROM program"
+        count_query = "SELECT COUNT(*) FROM program"
+        where_clause = ""
+        params = []
 
         value = request.args.get("value")
         if value:
-            search_pattern = f"%{value}%"
-            if attribute.lower() == 'name':
-                base_query = Program.query.filter(Program.name.ilike(search_pattern))
-            elif attribute.lower() == 'college':
-                base_query = Program.query.filter(Program.college.ilike(search_pattern))
-            else:
-                base_query = Program.query.filter(Program.code.ilike(search_pattern))
+            where_clause = f" WHERE {sort_col} ILIKE %s"
+            params.append(f"%{value}%")
 
-            total = base_query.count()
-            items = base_query.order_by(order).offset((page - 1) * per_page).limit(per_page).all()
-        else:
-            total = Program.query.count()
-            items = Program.query.order_by(order).offset((page - 1) * per_page).limit(per_page).all()
+        # Get total count
+        cur.execute(count_query + where_clause, tuple(params))
+        total = cur.fetchone()[0]
+
+        # Get items
+        full_query = f"{query}{where_clause} ORDER BY {sort_col} {order} LIMIT %s OFFSET %s"
+        params.extend([per_page, offset])
+        
+        cur.execute(full_query, tuple(params))
+        items = cur.fetchall()
 
         total_pages = ceil(total / per_page) if total > 0 else 0
-        result = [[p.code, p.name, p.college] for p in items]
+        result = [list(item) for item in items]
         return jsonify([result, total_pages]), 200
 
     except Exception:
         current_app.logger.exception("list_programs failed")
         return jsonify({"error": "An unexpected error occurred on the server."}), 500
+    finally:
+        cur.close()
+        conn.close()
 
 
 # ---- GET single ----
 # GET /programs/<code>
 @programs_bp.route("/programs/<string:code>", methods=["GET"])
 def get_program(code):
-    program = Program.query.get(code)
-    if not program:
-        return jsonify({"error": "Program not found"}), 404
-    return jsonify({"code": program.code, "name": program.name, "college": program.college}), 200
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    try:
+        cur.execute("SELECT code, name, college FROM program WHERE code = %s", (code,))
+        program = cur.fetchone()
+        if not program:
+            return jsonify({"error": "Program not found"}), 404
+        return jsonify(program), 200
+    except Exception:
+        current_app.logger.exception("get_program failed")
+        return jsonify({"error": "An unexpected error occurred on the server."}), 500
+    finally:
+        cur.close()
+        conn.close()
 
 
 # ---- CREATE ----
@@ -77,24 +95,36 @@ def create_program():
     if not code or not name or not college:
         return jsonify({"error": "'code', 'name', and 'college' are required"}), 400
 
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
     try:
-        college_exists = College.query.get(college)
-        if not college_exists:
+        # Check if college exists
+        cur.execute("SELECT 1 FROM college WHERE code = %s", (college,))
+        if not cur.fetchone():
             return jsonify({"error": f"Cannot add program. College with code '{college}' does not exist."}), 400
 
-        program = Program(code=code, name=name, college=college)
-        db.session.add(program)
-        db.session.commit()
-        location = url_for('.get_program', code=program.code, _external=False)
-        return jsonify({"code": program.code, "name": program.name, "college": program.college}), 201, {"Location": location}
+        cur.execute("""
+            INSERT INTO program (code, name, college)
+            VALUES (%s, %s, %s)
+            RETURNING code, name, college
+        """, (code, name, college))
+        
+        new_program = cur.fetchone()
+        conn.commit()
+        
+        location = url_for('.get_program', code=new_program['code'], _external=False)
+        return jsonify(new_program), 201, {"Location": location}
 
-    except IntegrityError:
-        db.session.rollback()
+    except psycopg2.IntegrityError:
+        conn.rollback()
         return jsonify({"error": f"Program with code '{code}' already exists."}), 409
     except Exception:
-        db.session.rollback()
+        conn.rollback()
         current_app.logger.exception("create_program failed")
         return jsonify({"error": "An unexpected error occurred on the server."}), 500
+    finally:
+        cur.close()
+        conn.close()
 
 
 # ---- UPDATE ----
@@ -108,42 +138,58 @@ def update_program(old_code):
     if not new_code or not new_name or not new_college:
         return jsonify({"error": "'code', 'name', and 'college' are required"}), 400
 
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
     try:
-        program = Program.query.get(old_code)
-        if not program:
+        # Check if program exists
+        cur.execute("SELECT 1 FROM program WHERE code = %s", (old_code,))
+        if not cur.fetchone():
             return jsonify({"error": "Program not found"}), 404
 
-        college_exists = College.query.get(new_college)
-        if not college_exists:
+        # Check if college exists
+        cur.execute("SELECT 1 FROM college WHERE code = %s", (new_college,))
+        if not cur.fetchone():
             return jsonify({"error": f"Cannot update program. College with code '{new_college}' does not exist."}), 400
 
-        program.code = new_code
-        program.name = new_name
-        program.college = new_college
-        db.session.commit()
-        return jsonify({"code": program.code, "name": program.name, "college": program.college}), 200
+        cur.execute("""
+            UPDATE program
+            SET code = %s, name = %s, college = %s
+            WHERE code = %s
+            RETURNING code, name, college
+        """, (new_code, new_name, new_college, old_code))
+        
+        updated_program = cur.fetchone()
+        conn.commit()
+        return jsonify(updated_program), 200
 
-    except IntegrityError:
-        db.session.rollback()
+    except psycopg2.IntegrityError:
+        conn.rollback()
         return jsonify({"error": f"Program with code '{new_code}' already exists."}), 409
     except Exception:
-        db.session.rollback()
+        conn.rollback()
         current_app.logger.exception("update_program failed")
         return jsonify({"error": "An unexpected error occurred on the server."}), 500
+    finally:
+        cur.close()
+        conn.close()
 
 
 # ---- DELETE ----
 # DELETE /programs/<code>
 @programs_bp.route("/programs/delete/<string:code>", methods=["DELETE"])
 def delete_program(code):
+    conn = get_db_connection()
+    cur = conn.cursor()
     try:
-        program = Program.query.get(code)
-        if not program:
+        cur.execute("DELETE FROM program WHERE code = %s RETURNING code", (code,))
+        if not cur.fetchone():
             return jsonify({"error": "Program not found"}), 404
-        db.session.delete(program)
-        db.session.commit()
+        conn.commit()
         return "", 204
     except Exception:
-        db.session.rollback()
+        conn.rollback()
         current_app.logger.exception("delete_program failed")
         return jsonify({"error": "An unexpected error occurred on the server."}), 500
+    finally:
+        cur.close()
+        conn.close()

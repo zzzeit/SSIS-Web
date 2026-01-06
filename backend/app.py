@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
-from sqlalchemy.exc import IntegrityError
+import psycopg2
+from psycopg2.extras import RealDictCursor
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import create_access_token, JWTManager
 from config import BaseConfig
@@ -15,15 +16,47 @@ CORS(app)
 bcrypt = Bcrypt(app)
 jwt = JWTManager(app)
 
-from extensions import db
-db.init_app(app)
+from extensions import get_db_connection
 
-class User(db.Model):
-    username = db.Column(db.String(80), primary_key=True)
-    password = db.Column(db.String(120), nullable=False)
-from models import College, Program, Student
+# Initialize Database Tables
+def init_db():
+    conn = get_db_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS college (
+                code VARCHAR(30) PRIMARY KEY,
+                name VARCHAR(80) NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS program (
+                code VARCHAR(30) PRIMARY KEY,
+                name VARCHAR(80) NOT NULL,
+                college VARCHAR(30),
+                FOREIGN KEY (college) REFERENCES college(code) ON DELETE SET NULL ON UPDATE CASCADE
+            );
+            CREATE TABLE IF NOT EXISTS student (
+                id_num VARCHAR(8) PRIMARY KEY,
+                fname VARCHAR(50) NOT NULL,
+                lname VARCHAR(50) NOT NULL,
+                program_code VARCHAR(30),
+                year INTEGER NOT NULL,
+                sex VARCHAR(10) NOT NULL,
+                FOREIGN KEY (program_code) REFERENCES program(code) ON DELETE SET NULL ON UPDATE CASCADE
+            );
+            CREATE TABLE IF NOT EXISTS "user" (
+                username VARCHAR(80) PRIMARY KEY,
+                password VARCHAR(120) NOT NULL
+            );
+        """)
+        conn.commit()
+    except Exception as e:
+        print(f"Error creating tables: {e}")
+    finally:
+        cur.close()
+        conn.close()
+
 with app.app_context():
-    db.create_all()
+    init_db()
 
 from blueprints import colleges, programs, students
 app.register_blueprint(colleges.colleges_bp)
@@ -32,6 +65,8 @@ app.register_blueprint(students.students_bp)
 
 @app.route("/register", methods=['POST'])
 def register_user():
+    conn = get_db_connection()
+    cur = conn.cursor()
     try:
         data = request.get_json()
         username = data.get('username')
@@ -43,18 +78,20 @@ def register_user():
         # Hash the password before storing
         hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
         
-        new_user = User(username=username, password=hashed_password)
-        db.session.add(new_user)
-        db.session.commit()
+        cur.execute('INSERT INTO "user" (username, password) VALUES (%s, %s)', (username, hashed_password))
+        conn.commit()
         
         return jsonify({"message": f"User '{username}' created successfully."}), 201
-    except IntegrityError:
-        db.session.rollback()
+    except psycopg2.IntegrityError:
+        conn.rollback()
         return jsonify({"error": f"User with username '{username}' already exists."}), 409
     except Exception as e:
-        db.session.rollback()
+        conn.rollback()
         print(f"An error occurred during registration: {e}")
         return jsonify({"error": "An unexpected error occurred."}), 500
+    finally:
+        cur.close()
+        conn.close()
 
 
 @app.route("/register", methods=["GET"])
@@ -74,15 +111,22 @@ def login_user():
     if not username or not password:
         return jsonify({"error": "Username and password are required."}), 400
 
-    user = User.query.get(username)
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    try:
+        cur.execute('SELECT * FROM "user" WHERE username = %s', (username,))
+        user = cur.fetchone()
 
-    # Check if user exists and if the provided password hash matches the stored hash
-    if user and bcrypt.check_password_hash(user.password, password):
-        # Create and return a new access token
-        access_token = create_access_token(identity=username)
-        return jsonify(access_token=access_token), 200
-    
-    return jsonify({"error": "Invalid username or password."}), 401
+        # Check if user exists and if the provided password hash matches the stored hash
+        if user and bcrypt.check_password_hash(user['password'], password):
+            # Create and return a new access token
+            access_token = create_access_token(identity=username)
+            return jsonify(access_token=access_token), 200
+        
+        return jsonify({"error": "Invalid username or password."}), 401
+    finally:
+        cur.close()
+        conn.close()
 
 @app.route("/")
 def serve_index():
