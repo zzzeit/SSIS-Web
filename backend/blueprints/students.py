@@ -36,22 +36,46 @@ def list_students():
 
         query = "SELECT id_num, fname, lname, program_code, year, sex FROM student"
         count_query = "SELECT COUNT(*) FROM student"
-        where_clause = ""
+        where_clauses = []
         params = []
 
+        # Main search value
         value = request.args.get("value")
         if value:
             if attribute.lower() == 'year':
-                # year search expects exact integer
                 try:
                     year_val = int(value)
-                    where_clause = " WHERE year = %s"
+                    where_clauses.append("year = %s")
                     params.append(year_val)
                 except ValueError:
                     return jsonify({"error": "Invalid year value"}), 400
             else:
-                where_clause = f" WHERE {sort_col} ILIKE %s"
+                where_clauses.append(f"{sort_col} ILIKE %s")
                 params.append(f"%{value}%")
+
+        # Additional filters
+        filter_map = {
+            "Program": "program_code",
+            "Year": "year",
+            "Sex": "sex"
+        }
+        for filter_key, db_col in filter_map.items():
+            filter_val = request.args.get(filter_key)
+            if filter_val:
+                if db_col == "year":
+                    try:
+                        filter_val = int(filter_val)
+                        where_clauses.append(f"{db_col} = %s")
+                        params.append(filter_val)
+                    except ValueError:
+                        return jsonify({"error": "Invalid year filter value"}), 400
+                else:
+                    where_clauses.append(f"{db_col} = %s")
+                    params.append(filter_val)
+
+        where_clause = ""
+        if where_clauses:
+            where_clause = " WHERE " + " AND ".join(where_clauses)
 
         # Get total count
         cur.execute(count_query + where_clause, tuple(params))
@@ -60,12 +84,10 @@ def list_students():
         # Get items
         full_query = f"{query}{where_clause} ORDER BY {sort_col} {order} LIMIT %s OFFSET %s"
         params.extend([per_page, offset])
-        
         cur.execute(full_query, tuple(params))
         items = cur.fetchall()
 
         total_pages = ceil(total / per_page) if total > 0 else 0
-        # Convert tuples to list of lists to match original format
         result = [list(item) for item in items]
         return jsonify([result, total_pages]), 200
 
