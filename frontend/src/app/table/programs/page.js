@@ -124,22 +124,20 @@ export default function Programs() {
         }
     };
 
+    // Table's delete button already confirms once before invoking this handler
     const deleteFunc = async (valueFuncs, refreshFunc, visibilityFunc) => {
         const oldCode = valueFuncs[0]?.[0];
         if (!oldCode) return;
 
-        const isConfirm = window.confirm(`Are you sure you want to delete ${oldCode}?`);
-        if (isConfirm) {
-            const response = await fetch(`${API_URL}/programs/delete/${oldCode}`, {
-                method: 'DELETE'
-            });
-            if (response.ok) {
-                refreshFunc();
-                visibilityFunc();
-            } else {
-                const errorData = await response.json();
-                window.alert(errorData.error || `An unknown error has occurred. STATUS ${response.status}`);
-            }
+        const response = await fetch(`${API_URL}/programs/delete/${oldCode}`, {
+            method: 'DELETE'
+        });
+        if (response.ok) {
+            refreshFunc();
+            visibilityFunc();
+        } else {
+            const errorData = await response.json();
+            window.alert(errorData.error || `An unknown error has occurred. STATUS ${response.status}`);
         }
     }
 
