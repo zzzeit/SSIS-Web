@@ -105,4 +105,16 @@ async function deleteFile(bucketName, filePath) {
         return data;
 }
 
-export { uploadFile, downloadFile, renameFile, updateFile, deleteFile };
+async function getFileUrl(bucketName, filePath, expiresIn = 3600) {
+    const { data, error } = await supabase.storage
+        .from(bucketName)
+        .createSignedUrl(filePath, expiresIn);
+
+    if (error) {
+        console.error('Error getting file URL:', error);
+        return null;
+    }
+    return data.signedUrl;
+}
+
+export { uploadFile, downloadFile, renameFile, updateFile, deleteFile, getFileUrl };

@@ -9,7 +9,9 @@ import Lottie from 'lottie-react';
 import loadingIcon from './loading.json';
 import Button from '../Button';
 import LogoutButton from './LogoutButton';
-import { deleteFile } from '@/utils/supaClient';
+import { deleteFile, getFileUrl } from '@/utils/supaClient';
+
+const DEFAULT_AVATAR_URL = 'https://cdn-icons-png.flaticon.com/128/9308/9308008.png';
 
 export default function Table({ table_name="Table", header_name="", headers=["header1", "header2", "header3"], table_data=[], refreshFunc, displayRefresh, paginationFunctions=[], searchFuncs=[], editDeleteFuncs=[], StudentFilters=[] }) {
 
@@ -63,6 +65,7 @@ export default function Table({ table_name="Table", header_name="", headers=["he
         <SearchBarComponent headers={headers} funcs={searchFuncs} StudentFilterVisibility={[visibleStudentFilter, setVisibleStudentFilter]} />
 
         <TableComponent
+            table_name={table_name}
             headers={headers}
             table_data={table_data}
             displayRefresh={displayRefresh}
@@ -108,9 +111,10 @@ function SearchBarComponent({headers=[], funcs=[], StudentFilterVisibility=[]}) 
     );
 }
 
-function TableComponent({headers, table_data, displayRefresh, paginationFunctions=[], searchFuncs=[], onView, onEdit, onDelete}) {
+function TableComponent({table_name, headers, table_data, displayRefresh, paginationFunctions=[], searchFuncs=[], onView, onEdit, onDelete}) {
 
     const [ascending, setAscending, , , searchBy, setSearchBy] = searchFuncs;
+    const showPfp = table_name === 'student';
 
     const sortByHeader = (header) => {
         if (typeof setSearchBy !== 'function' || typeof setAscending !== 'function') return;
@@ -131,6 +135,7 @@ function TableComponent({headers, table_data, displayRefresh, paginationFunction
                     <thead>
                         <tr>
                             <th style={{width: '50px'}}>#</th>
+                            {showPfp && <th style={{width: '50px'}}>Pfp</th>}
                             {headers.map((header) => {
                                 const isActive = searchBy && String(searchBy).toLowerCase() === header.toLowerCase();
                                 return (
@@ -151,6 +156,12 @@ function TableComponent({headers, table_data, displayRefresh, paginationFunction
                                 
                                 <td>{(index + 1) + ((paginationFunctions[0] - 1) * 14)}</td>
 
+                                {showPfp && (
+                                    <td onClick={(e) => e.stopPropagation()}>
+                                        <StudentAvatarCell id_num={row[0]} />
+                                    </td>
+                                )}
+
                                 {row.map((cell, cellIndex) => (
                                     <td key={cellIndex}>{cell}</td>
                                 ))}
@@ -169,6 +180,43 @@ function TableComponent({headers, table_data, displayRefresh, paginationFunction
                 </table>
             </div>
         </>
+    );
+}
+
+function StudentAvatarCell({id_num}) {
+    // Stays null (unresolved) until the lookup confirms whether a pfp exists
+    const [avatarURL, setAvatarURL] = useState(null);
+
+    useEffect(() => {
+        let isMounted = true;
+        setAvatarURL(null);
+
+        const fetchAvatar = async () => {
+            if (!id_num) {
+                if (isMounted) setAvatarURL(DEFAULT_AVATAR_URL);
+                return;
+            }
+            const url = await getFileUrl('profile-pictures', String(id_num).replace(/-/g, ""));
+            if (isMounted) {
+                setAvatarURL(url || DEFAULT_AVATAR_URL);
+            }
+        };
+        fetchAvatar();
+
+        return () => { isMounted = false; };
+    }, [id_num]);
+
+    if (!avatarURL) {
+        return <div className='table-avatar table-avatar-placeholder' />;
+    }
+
+    return (
+        <img
+            src={avatarURL}
+            alt='pfp'
+            className='table-avatar'
+            onError={(e) => { e.currentTarget.src = DEFAULT_AVATAR_URL; }}
+        />
     );
 }
 
