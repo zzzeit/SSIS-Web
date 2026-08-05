@@ -67,6 +67,7 @@ export default function Table({ table_name="Table", header_name="", headers=["he
             table_data={table_data}
             displayRefresh={displayRefresh}
             paginationFunctions={paginationFunctions}
+            searchFuncs={searchFuncs}
             onView={(row) => openInfoCard(row, false)}
             onEdit={(row) => openInfoCard(row, true)}
             onDelete={deleteRow}
@@ -84,12 +85,6 @@ function SearchBarComponent({headers=[], funcs=[], StudentFilterVisibility=[]}) 
     return (
         <>
             <div className='search-div'>
-                <Button className='search-button' ascending={funcs[0]}>
-                    <Image src={'/media/sort.svg'} alt='sort button' width={25} height={25} style={{ filter: 'invert(1)' }} onClick={() => {
-                        funcs[1](funcs[0] === 1 ? 0 : 1)
-                    }} />
-                </Button>
-
                 <select onChange={(e) => {funcs[5](e.target.value)}}>
                     {headers.map((att) => (
                         <option key={att} value={att}>{att}</option>
@@ -113,7 +108,19 @@ function SearchBarComponent({headers=[], funcs=[], StudentFilterVisibility=[]}) 
     );
 }
 
-function TableComponent({headers, table_data, displayRefresh, paginationFunctions=[], onView, onEdit, onDelete}) {
+function TableComponent({headers, table_data, displayRefresh, paginationFunctions=[], searchFuncs=[], onView, onEdit, onDelete}) {
+
+    const [ascending, setAscending, , , searchBy, setSearchBy] = searchFuncs;
+
+    const sortByHeader = (header) => {
+        if (typeof setSearchBy !== 'function' || typeof setAscending !== 'function') return;
+        if (searchBy && String(searchBy).toLowerCase() === header.toLowerCase()) {
+            setAscending(ascending === 1 ? 0 : 1);
+        } else {
+            setSearchBy(header);
+            setAscending(1);
+        }
+    };
 
     return (
         <>
@@ -124,9 +131,15 @@ function TableComponent({headers, table_data, displayRefresh, paginationFunction
                     <thead>
                         <tr>
                             <th style={{width: '50px'}}>#</th>
-                            {headers.map((header) => (
-                                <th key={header}>{header}</th>
-                            ))}
+                            {headers.map((header) => {
+                                const isActive = searchBy && String(searchBy).toLowerCase() === header.toLowerCase();
+                                return (
+                                    <th key={header} className='sortable-header' onClick={() => sortByHeader(header)}>
+                                        {header}
+                                        <span className='sort-indicator'>{isActive ? (ascending === 1 ? '↑' : '↓') : ''}</span>
+                                    </th>
+                                );
+                            })}
                             <th style={{width: '90px'}}>Actions</th>
                         </tr>
                     </thead>

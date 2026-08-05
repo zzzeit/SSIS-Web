@@ -181,3 +181,19 @@
     cursor: pointer;
     background-color: var(--color-red-500);
 }
+
+.sortable-header {
+    cursor: pointer;
+    user-select: none;
+}
+
+.sortable-header:hover {
+    color: var(--color-emerald-500);
+}
+
+.sort-indicator {
+    display: inline-block;
+    width: 12px;
+    margin-left: 4px;
+    font-size: 0.75em;
+}
