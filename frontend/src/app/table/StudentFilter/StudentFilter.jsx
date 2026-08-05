@@ -1,71 +1,86 @@
+"use client";
 import './StudentFilter.css'
 import { useEffect, useState } from 'react';
 
-export default function StudentFilter({ StudentFilters=[], visibility=[] }) {
-    const [selectValue, setSelectValue] = useState('Program');
-    const [inputValue, setInputValue] = useState('');
+const YEAR_OPTIONS = ['1', '2', '3', '4'];
 
+export default function StudentFilter({ StudentFilters=[], visibility=[] }) {
+    const API_URL = process.env.NEXT_PUBLIC_API_URL;
+    const filters = StudentFilters[0] || {};
+    const setFilters = StudentFilters[1];
+
+    const [programOptions, setProgramOptions] = useState([]);
+
+    // Program codes aren't paginated here since the dropdown needs the full list
     useEffect(() => {
-        setSelectValue('Program');
-        setInputValue('');
+        if (!visibility[0]) return;
+
+        const fetchProgramCodes = async () => {
+            try {
+                const response = await fetch(`${API_URL}/programs/codes`);
+                if (!response.ok) return;
+                const data = await response.json();
+                setProgramOptions(data);
+            } catch (error) {
+                console.error("Failed to fetch program codes:", error);
+            }
+        };
+        fetchProgramCodes();
     }, [visibility[0]]);
+
+    const updateFilter = (key, value) => {
+        const newFilters = { ...filters };
+        if (value) {
+            newFilters[key] = value;
+        } else {
+            delete newFilters[key];
+        }
+        setFilters(newFilters);
+    };
 
     return (
         <>
             {visibility[0] && (
                 <>
-                    <div className='out-sf' onClick={() => {visibility[1](false)}} />
+                    <div className='out-sf' onClick={() => { visibility[1](false) }} />
                     <div className="card-div-sf">
-                        <div className='add-filter-header-sf'>
-                            <select className='select-sf' onChange={(e) => setSelectValue(e.target.value)}>
-                                <option value="Program">Program</option>
-                                <option value="Year">Year</option>
-                                <option value="Sex">Sex</option>
-                            </select>
-                            <input className='input-sf' placeholder='Value' onChange={(e) => setInputValue(e.target.value)} />
-                            <button className='add-filter-sf'     onClick={() => {
-                                                                        const newFilters = { ...StudentFilters[0], [selectValue]: inputValue };
-                                                                        StudentFilters[1](newFilters);
-                                                                        console.log(StudentFilters[0]);
-                                                                    }}>
-                                <img src='https://cdn-icons-png.flaticon.com/128/992/992651.png' alt='add filter' style={{width: '25px', height: '25px'}} />
-                            </button>
+                        <div className='filter-header-sf'>
+                            <label>Filter Students</label>
                         </div>
                         <div style={{width: '100%', border: '1px dashed #2b2b2b'}} />
                         <div className='filter-body-sf'>
-                            {Object.keys(StudentFilters[0]).length === 0 && (
-                                <label className='no-filters-sf'>No active filters</label>
-                            )}
-                            {Object.entries(StudentFilters[0]).map(([key, value]) => (
-                                <FilterItem
-                                    key={key}
-                                    filterKey={key}
-                                    filterValue={value}
-                                    removeFunc={() => {
-                                        const newFilters = { ...StudentFilters[0] };
-                                        delete newFilters[key];
-                                        StudentFilters[1](newFilters);
-                                    }}
-                                />
-                            ))}
+                            <div className='filter-row-sf'>
+                                <label>Sex</label>
+                                <select className='select-sf' value={filters.Sex || ''} onChange={(e) => updateFilter('Sex', e.target.value)}>
+                                    <option value=''>All</option>
+                                    <option value='Male'>Male</option>
+                                    <option value='Female'>Female</option>
+                                </select>
+                            </div>
+
+                            <div className='filter-row-sf'>
+                                <label>Year Level</label>
+                                <select className='select-sf' value={filters.Year || ''} onChange={(e) => updateFilter('Year', e.target.value)}>
+                                    <option value=''>All</option>
+                                    {YEAR_OPTIONS.map((year) => (
+                                        <option key={year} value={year}>{year}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className='filter-row-sf'>
+                                <label>Program</label>
+                                <select className='select-sf' value={filters.Program || ''} onChange={(e) => updateFilter('Program', e.target.value)}>
+                                    <option value=''>All</option>
+                                    {programOptions.map((code) => (
+                                        <option key={code} value={code}>{code}</option>
+                                    ))}
+                                </select>
+                            </div>
                         </div>
                     </div>
                 </>
-                
             )}
-            
         </>
-    )
-
-}
-
-function FilterItem({ filterKey, filterValue, removeFunc }) {
-    return (
-        <div className='filter-item-sf'>
-            <label>{filterKey}: {filterValue}</label>
-            <button className='remove-filter-sf' onClick={removeFunc}>
-                <img src='https://cdn-icons-png.flaticon.com/128/1828/1828665.png' alt='remove filter' style={{width: '20px', height: '20px'}} />
-            </button>
-        </div>
     )
 }

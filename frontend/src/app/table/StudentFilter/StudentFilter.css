@@ -11,7 +11,7 @@
 
 .card-div-sf {
     position: fixed;
-    width: 400px;
+    width: 250px;
     min-height: 75px;
     z-index: 1000;
     top: 50%;
@@ -24,78 +24,32 @@
     border: 1px dashed var(--border-color-2);
     border-radius: 5px;
     background-color: var(--background);
-    max-width: 300px;
 }
 
-.add-filter-header-sf {
+.filter-header-sf {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-    gap: 10px;
 }
 
 .select-sf {
     width: 100%;
-    max-width: 100px;
     height: 30px;
     background-color: var(--background);
     color: var(--foreground);
     border: 1px solid var(--border-color-2);
     border-radius: 5px;
     padding-left: 5px;
-}
-
-.input-sf {
-    width: 100%;
-    height: 30px;
-    background-color: var(--background);
-    color: var(--foreground);
-    border: 1px solid var(--border-color-2);
-    border-radius: 5px;
-    padding-left: 5px;
-}
-
-.add-filter-sf {
-    min-width: 30px;
-    width: 30px;
-    height: 30px;
-    background-color: #4CAF50;
-    color: var(--button-foreground);
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    align-content: center;
-    justify-items: center;
 }
 
 .filter-body-sf {
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
     gap: 10px;
-    max-height: 300px;
-    overflow-x: auto;
 }
 
-.filter-item-sf {
-    width: fit-content;
+.filter-row-sf {
     display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    gap: 10px;
-    border: 1px solid var(--border-color-2);
-    border-radius: 15px;
-    padding: 0px 10px;
-}
-
-.remove-filter-sf {
-    min-width: 20px;
-    width: 20px;
-    height: 20px;
-    color: var(--button-foreground);
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    align-content: center;
-    justify-items: center;
+    flex-direction: column;
+    gap: 5px;
 }

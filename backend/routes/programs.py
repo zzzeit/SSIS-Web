@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, current_app, request, send_from_directory, url_for
 import psycopg2
-from models.programs import list_programs, get_program, create_program, update_program, delete_program
+from models.programs import list_programs, list_all_program_codes, get_program, create_program, update_program, delete_program
 
 programs_bp = Blueprint('programs', __name__)
 
@@ -19,6 +19,15 @@ def programs_list_route():
         return jsonify([result, total_pages]), 200
     except Exception:
         current_app.logger.exception("list_programs failed")
+        return jsonify({"error": "An unexpected error occurred on the server."}), 500
+
+@programs_bp.route("/programs/codes", methods=["GET"])
+def programs_codes_route():
+    try:
+        codes = list_all_program_codes()
+        return jsonify(codes), 200
+    except Exception:
+        current_app.logger.exception("list_all_program_codes failed")
         return jsonify({"error": "An unexpected error occurred on the server."}), 500
 
 @programs_bp.route("/programs/<string:code>", methods=["GET"])

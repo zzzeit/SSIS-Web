@@ -37,6 +37,16 @@ def list_programs(attribute, page, ascending, value):
         cur.close()
         conn.close()
 
+def list_all_program_codes():
+    conn = get_db_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute("SELECT code FROM program ORDER BY code ASC")
+        return [row[0] for row in cur.fetchall()]
+    finally:
+        cur.close()
+        conn.close()
+
 def get_program(code):
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
