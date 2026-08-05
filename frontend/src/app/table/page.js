@@ -9,12 +9,14 @@ import Lottie from 'lottie-react';
 import loadingIcon from './loading.json';
 import Button from '../Button';
 import LogoutButton from './LogoutButton';
+import { deleteFile } from '@/utils/supaClient';
 
 export default function Table({ table_name="Table", header_name="", headers=["header1", "header2", "header3"], table_data=[], refreshFunc, displayRefresh, paginationFunctions=[], searchFuncs=[], editDeleteFuncs=[], StudentFilters=[] }) {
 
     const [visibleInfoCard, setVisibleInfoCard] = useState(false);
     const [visibleStudentFilter, setVisibleStudentFilter] = useState(false);
     const [selectedRow, setSelectedRow] = useState([]);
+    const [editMode, setEditMode] = useState(false);
 
     useEffect(() => {
         if (visibleStudentFilter === false) {
@@ -23,9 +25,31 @@ export default function Table({ table_name="Table", header_name="", headers=["he
         
     }, [visibleStudentFilter]);
 
+    // Opens the InfoCard, optionally starting straight in edit mode
+    const openInfoCard = (row, startInEdit = false) => {
+        setSelectedRow(row);
+        setEditMode(startInEdit);
+        setVisibleInfoCard(true);
+    };
+
+    const deleteRow = async (row) => {
+        const oldCode = row?.[0];
+        if (!oldCode) return;
+
+        const isConfirm = window.confirm(`Are you sure you want to delete ${oldCode}?`);
+        if (!isConfirm) return;
+
+        if (table_name === 'student' && !(await deleteFile('profile-pictures', `${String(oldCode).replace(/-/g, "")}`))) {
+            console.error("Failed to delete profile picture.");
+        }
+        if (typeof editDeleteFuncs[1] === 'function') {
+            editDeleteFuncs[1]([row], refreshFunc, () => setVisibleInfoCard(false));
+        }
+    };
+
     return (
     <>
-        <InfoCard table_name={table_name} headers={headers} visibility={[visibleInfoCard, setVisibleInfoCard]} valueFuncs={[selectedRow, setSelectedRow]} refreshFunc={refreshFunc} editDeleteFuncs={editDeleteFuncs} />
+        <InfoCard table_name={table_name} headers={headers} visibility={[visibleInfoCard, setVisibleInfoCard]} valueFuncs={[selectedRow, setSelectedRow]} refreshFunc={refreshFunc} editDeleteFuncs={editDeleteFuncs} initialEdit={editMode} />
         <StudentFilter StudentFilters={StudentFilters} visibility={[visibleStudentFilter, setVisibleStudentFilter]} />
         
         
@@ -38,7 +62,15 @@ export default function Table({ table_name="Table", header_name="", headers=["he
 
         <SearchBarComponent headers={headers} funcs={searchFuncs} StudentFilterVisibility={[visibleStudentFilter, setVisibleStudentFilter]} />
 
-        <TableComponent headers={headers} table_data={table_data} setFunctions={[setVisibleInfoCard, setSelectedRow]} displayRefresh={displayRefresh} paginationFunctions={paginationFunctions} />
+        <TableComponent
+            headers={headers}
+            table_data={table_data}
+            displayRefresh={displayRefresh}
+            paginationFunctions={paginationFunctions}
+            onView={(row) => openInfoCard(row, false)}
+            onEdit={(row) => openInfoCard(row, true)}
+            onDelete={deleteRow}
+        />
 
         <Pagination paginationFunctions={paginationFunctions} />
 
@@ -81,7 +113,7 @@ function SearchBarComponent({headers=[], funcs=[], StudentFilterVisibility=[]}) 
     );
 }
 
-function TableComponent({headers, table_data, setFunctions=[], displayRefresh, paginationFunctions=[]}) {
+function TableComponent({headers, table_data, displayRefresh, paginationFunctions=[], onView, onEdit, onDelete}) {
 
     return (
         <>
@@ -95,23 +127,29 @@ function TableComponent({headers, table_data, setFunctions=[], displayRefresh, p
                             {headers.map((header) => (
                                 <th key={header}>{header}</th>
                             ))}
+                            <th style={{width: '90px'}}>Actions</th>
                         </tr>
                     </thead>
 
                     <tbody>
                         
                         {table_data.map((row, index) => (
-                            <tr key={row[0] || index} className='h-10 college' onClick={() => {
-                                // Pass the entire row array to the InfoCard
-                                setFunctions[1](row);
-                                setFunctions[0](true); 
-                            }}>
+                            <tr key={row[0] || index} className='h-10 college' onClick={() => onView(row)}>
                                 
                                 <td>{(index + 1) + ((paginationFunctions[0] - 1) * 14)}</td>
 
                                 {row.map((cell, cellIndex) => (
                                     <td key={cellIndex}>{cell}</td>
                                 ))}
+
+                                <td className='action-cell' onClick={(e) => e.stopPropagation()}>
+                                    <button type='button' className='action-button-edit' onClick={() => onEdit(row)}>
+                                        <Image src='/media/edit.svg' alt='Edit' width={18} height={18} style={{ filter: 'var(--svg-inverse)' }} />
+                                    </button>
+                                    <button type='button' className='action-button-delete' onClick={() => onDelete(row)}>
+                                        <Image src='/media/trash.svg' alt='Delete' width={18} height={18} style={{ filter: 'var(--svg-inverse)' }} />
+                                    </button>
+                                </td>
                             </tr>
                         ))}
                     </tbody>

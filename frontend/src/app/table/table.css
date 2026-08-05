@@ -143,3 +143,41 @@
     padding-left: 18px;
     padding-right: 18px;
 }
+.action-cell {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+}
+
+.action-button-edit {
+    width: 28px;
+    height: 28px;
+    border-radius: 3px;
+    background-color: var(--color-emerald-600);
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.action-button-delete {
+    width: 28px;
+    height: 28px;
+    border-radius: 3px;
+    background-color: var(--color-red-600);
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.action-button-edit:hover {
+    cursor: pointer;
+    background-color: var(--color-emerald-500);
+}
+
+.action-button-delete:hover {
+    cursor: pointer;
+    background-color: var(--color-red-500);
+}

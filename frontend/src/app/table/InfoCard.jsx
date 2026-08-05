@@ -3,11 +3,10 @@ import './InfoCard.css'
 import HeaderButton from '../HeaderButton';
 import Image from 'next/image';
 import AvatarPicker from '@/components/AvatarPicker/AvatarPicker';
-import { deleteFile } from '@/utils/supaClient';
 import { useEffect, useState } from 'react';
 import { updateFile } from '@/utils/supaClient';
 
-export default function InfoCard({ table_name='', visibility, headers = [], valueFuncs = [], refreshFunc, editDeleteFuncs = [] }) {
+export default function InfoCard({ table_name='', visibility, headers = [], valueFuncs = [], refreshFunc, editDeleteFuncs = [], initialEdit = false }) {
     const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
     const [canEdit, setCanEdit] = useState(false);
@@ -26,16 +25,6 @@ export default function InfoCard({ table_name='', visibility, headers = [], valu
         }
     };
 
-    const deleteFunc = async () => {
-        if (!await deleteFile('profile-pictures', `${valueFuncs[0][0].replace(/-/g, "")}`)) {
-            console.error("Failed to delete profile picture.");
-            return;
-        }
-        if (typeof editDeleteFuncs[1] === 'function') {
-            editDeleteFuncs[1](valueFuncs, refreshFunc, visibilityFunc);
-        }
-    };
-
     // 2. Update the effect to populate the inputValues array from the prop
     useEffect(() => {
         // Ensure valueFuncs and its first element exist before setting state
@@ -43,6 +32,13 @@ export default function InfoCard({ table_name='', visibility, headers = [], valu
             setInputValues(valueFuncs[0]);
         }
     }, [valueFuncs]);
+
+    // Enter edit mode immediately when opened via the table's Edit button
+    useEffect(() => {
+        if (visibility[0]) {
+            setCanEdit(initialEdit);
+        }
+    }, [visibility[0], initialEdit]);
 
     if (!visibility[0] || !valueFuncs[0] || valueFuncs[0].length === 0) {
         return null;
@@ -63,16 +59,6 @@ export default function InfoCard({ table_name='', visibility, headers = [], valu
                 <div className='header-pop-up'>
                     <HeaderButton onClick={visibilityFunc} style={{ borderTopRightRadius: '10px', width: '45px' }}>
                         <Image src='/media/close.svg' alt='Close' width={28} height={28} style={{ filter: 'var(--svg-inverse)' }} />
-                    </HeaderButton>
-                    <HeaderButton onClick={deleteFunc} style={{ width: '45px' }}>
-                        <Image src={'/media/trash.svg'} alt='Trash' width={28} height={28} style={{ filter: 'var(--svg-inverse)' }} />
-                    </HeaderButton>
-                    <HeaderButton onClick={() => {
-                        // Reset inputs to original values when toggling edit mode
-                        setInputValues(valueFuncs[0]);
-                        setCanEdit(!canEdit);
-                    }} style={{ width: '45px' }}>
-                        <Image src={'/media/edit.svg'} alt='Edit' width={28} height={28} style={{ filter: 'var(--svg-inverse)' }} />
                     </HeaderButton>
                 </div>
 
