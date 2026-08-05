@@ -1,8 +1,16 @@
+import re
 from flask import Blueprint, jsonify, current_app, request, send_from_directory, url_for
 import psycopg2
 from models.students import list_students, get_student, create_student, update_student, delete_student
 
 students_bp = Blueprint('students', __name__)
+
+# Normalizes any id_num input (with or without a dash) into "XXXX-XXXX", or None if invalid
+def format_id_num(raw):
+    digits = re.sub(r"\D", "", raw or "")
+    if len(digits) != 8:
+        return None
+    return f"{digits[:4]}-{digits[4:]}"
 
 @students_bp.route("/table/students", methods=["GET"])
 def serve_student_page():
@@ -32,7 +40,9 @@ def students_list_route():
 
 @students_bp.route("/students/<string:id_num>", methods=["GET"])
 def students_get_route(id_num):
-    id_num = id_num.replace("-", "")
+    id_num = format_id_num(id_num)
+    if not id_num:
+        return jsonify({"error": "Student not found"}), 404
     try:
         student = get_student(id_num)
         if not student:
@@ -45,7 +55,7 @@ def students_get_route(id_num):
 @students_bp.route("/students", methods=["POST"])
 def students_create_route():
     data = request.get_json(silent=True) or {}
-    id_num = data.get("id_num", "").replace("-", "")
+    id_num = format_id_num(data.get("id_num"))
     fname = data.get("fname")
     lname = data.get("lname")
     program_code = data.get("program_code")
@@ -53,10 +63,8 @@ def students_create_route():
     sex = data.get("sex")
 
     if not all([id_num, fname, lname, program_code, year, sex]):
-        return jsonify({"error": "'id_num', 'fname', 'lname', 'program_code', 'year', and 'sex' are required"}), 400
+        return jsonify({"error": "'id_num' (8 digits), 'fname', 'lname', 'program_code', 'year', and 'sex' are required"}), 400
 
-    if not id_num.isdigit():
-        return jsonify({"error": "ID number must be numeric"}), 400
     try:
         year = int(year)
     except ValueError:
@@ -76,20 +84,21 @@ def students_create_route():
 
 @students_bp.route("/students/edit/<string:old_id_num>", methods=["PUT"])
 def students_update_route(old_id_num):
-    old_id_num = old_id_num.replace("-", "")
+    old_id_num = format_id_num(old_id_num)
     data = request.get_json(silent=True) or {}
-    new_id_num = data.get("id_num", "").replace("-", "")
+    new_id_num = format_id_num(data.get("id_num"))
     fname = data.get("fname")
     lname = data.get("lname")
     program_code = data.get("program_code")
     year = data.get("year")
     sex = data.get("sex")
 
-    if not all([new_id_num, fname, lname, program_code, year, sex]):
-        return jsonify({"error": "'id_num', 'fname', 'lname', 'program_code', 'year', and 'sex' are required"}), 400
+    if not old_id_num:
+        return jsonify({"error": "Student not found"}), 404
 
-    if not new_id_num.isdigit():
-        return jsonify({"error": "ID number must be numeric"}), 400
+    if not all([new_id_num, fname, lname, program_code, year, sex]):
+        return jsonify({"error": "'id_num' (8 digits), 'fname', 'lname', 'program_code', 'year', and 'sex' are required"}), 400
+
     try:
         year = int(year)
     except ValueError:
@@ -110,7 +119,9 @@ def students_update_route(old_id_num):
 
 @students_bp.route("/students/delete/<string:id_num>", methods=["DELETE"])
 def students_delete_route(id_num):
-    id_num = id_num.replace("-", "")
+    id_num = format_id_num(id_num)
+    if not id_num:
+        return jsonify({"error": "Student not found"}), 404
     try:
         deleted = delete_student(id_num)
         if not deleted:

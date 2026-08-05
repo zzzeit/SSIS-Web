@@ -34,6 +34,10 @@ def list_students(attribute, page, ascending, value, filters):
                     params.append(year_val)
                 except ValueError:
                     return None, "invalid_year"
+            elif attribute.lower() == 'id_num':
+                # Match regardless of whether the dash is included in the search value
+                where_clauses.append("REPLACE(id_num, '-', '') ILIKE %s")
+                params.append(f"%{value.replace('-', '')}%")
             else:
                 where_clauses.append(f"{sort_col} ILIKE %s")
                 params.append(f"%{value}%")
