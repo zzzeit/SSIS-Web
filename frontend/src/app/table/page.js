@@ -54,30 +54,31 @@ export default function Table({ table_name="Table", header_name="", headers=["he
     <>
         <InfoCard table_name={table_name} headers={headers} visibility={[visibleInfoCard, setVisibleInfoCard]} valueFuncs={[selectedRow, setSelectedRow]} refreshFunc={refreshFunc} editDeleteFuncs={editDeleteFuncs} initialEdit={editMode} />
         <StudentFilter StudentFilters={StudentFilters} visibility={[visibleStudentFilter, setVisibleStudentFilter]} />
-        
-        
-        <div className='table-header'>
-            <label>{header_name}</label>
-            {/* <HeaderButton className='inline right-auto'>
-                <Lottie animationData={serverIcon} style={{width: '40px',height: '40px'}} loop autoPlay />
-            </HeaderButton> */}
+
+        <div className='table-page-center'>
+            <div className='table-header'>
+                <label>{header_name}</label>
+                {/* <HeaderButton className='inline right-auto'>
+                    <Lottie animationData={serverIcon} style={{width: '40px',height: '40px'}} loop autoPlay />
+                </HeaderButton> */}
+            </div>
+
+            <SearchBarComponent headers={headers} funcs={searchFuncs} StudentFilterVisibility={[visibleStudentFilter, setVisibleStudentFilter]} insertForm={insertForm} />
+
+            <TableComponent
+                table_name={table_name}
+                headers={headers}
+                table_data={table_data}
+                displayRefresh={displayRefresh}
+                paginationFunctions={paginationFunctions}
+                searchFuncs={searchFuncs}
+                onView={(row) => openInfoCard(row, false)}
+                onEdit={(row) => openInfoCard(row, true)}
+                onDelete={deleteRow}
+            />
+
+            <Pagination paginationFunctions={paginationFunctions} />
         </div>
-
-        <SearchBarComponent headers={headers} funcs={searchFuncs} StudentFilterVisibility={[visibleStudentFilter, setVisibleStudentFilter]} insertForm={insertForm} />
-
-        <TableComponent
-            table_name={table_name}
-            headers={headers}
-            table_data={table_data}
-            displayRefresh={displayRefresh}
-            paginationFunctions={paginationFunctions}
-            searchFuncs={searchFuncs}
-            onView={(row) => openInfoCard(row, false)}
-            onEdit={(row) => openInfoCard(row, true)}
-            onDelete={deleteRow}
-        />
-
-        <Pagination paginationFunctions={paginationFunctions} />
 
         <LogoutButton />
     </>
