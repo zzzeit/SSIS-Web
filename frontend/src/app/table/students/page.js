@@ -115,11 +115,11 @@ export default function Students() {
             } else {
                 const errorData = await response.json();
                 console.error("Submit error response:", errorData);
-                setNetworkError(errorData.error || `An unknown error occurred. STATUS: ${response.status}`);
+                window.alert(errorData.error || `An unknown error occurred. STATUS: ${response.status}`);
             }
         } catch (error) {
             console.error("Submit error:", error);
-            setNetworkError("Failed to submit data. The server might be down.");
+            window.alert("Failed to submit data. The server might be down.");
         }
     };
 
