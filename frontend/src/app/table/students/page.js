@@ -2,7 +2,6 @@
 import { useEffect, useState } from 'react';
 import { uploadFile } from '@/utils/supaClient';
 import Table from '../page';
-import InsertForm from '../InsertForm';
 
 export default function Students() {
     const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -175,21 +174,7 @@ export default function Students() {
     return (
         <>
             {networkError && <div style={{ color: 'red', textAlign: 'center', padding: '10px', border: '1px solid red', margin: '10px' }}>{networkError}</div>}
-            
-            <InsertForm 
-            insert_form_name='Insert Student'
-                fields={[
-                    ["ID Number: ", id_num, set_id_num], 
-                    ["First Name: ", fname, set_fname], 
-                    ["Last Name: ", lname, set_lname], 
-                    ["Program Code: ", program_code, set_program_code], 
-                    ["Year: ", year, set_year], 
-                    ["Sex: ", sex, set_sex]
-                ]} 
-                submitFunc={submitForm} 
-                avatarUpdate={[avatarFile, setAvatarFile, avatarURL, setAvatarURL]}
-            />
-            
+
             <Table 
                 table_name={"student"} 
                 headers={headers} 
@@ -200,6 +185,19 @@ export default function Students() {
                 searchFuncs={[ascending, setAscending, searchValue, setSearchValue, searchBy, setSearchBy]}
                 editDeleteFuncs={[submitEditButton, deleteFunc]} 
                 StudentFilters={[StudentFilters, setStudentFilters]}
+                insertForm={{
+                    name: 'Insert Student',
+                    fields: [
+                        ["ID Number: ", id_num, set_id_num], 
+                        ["First Name: ", fname, set_fname], 
+                        ["Last Name: ", lname, set_lname], 
+                        ["Program Code: ", program_code, set_program_code], 
+                        ["Year: ", year, set_year], 
+                        ["Sex: ", sex, set_sex]
+                    ],
+                    submitFunc: submitForm,
+                    avatarUpdate: [avatarFile, setAvatarFile, avatarURL, setAvatarURL]
+                }}
             />
         </>
     )

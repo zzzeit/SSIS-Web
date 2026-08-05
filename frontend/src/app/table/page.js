@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import './table.css'
 import InfoCard from './InfoCard';
+import InsertForm from './InsertForm';
 import StudentFilter from './StudentFilter/StudentFilter';
 import HeaderButton from '../HeaderButton';
 import Image from 'next/image';
@@ -13,7 +14,7 @@ import { deleteFile, getFileUrl } from '@/utils/supaClient';
 
 const DEFAULT_AVATAR_URL = 'https://cdn-icons-png.flaticon.com/128/9308/9308008.png';
 
-export default function Table({ table_name="Table", header_name="", headers=["header1", "header2", "header3"], table_data=[], refreshFunc, displayRefresh, paginationFunctions=[], searchFuncs=[], editDeleteFuncs=[], StudentFilters=[] }) {
+export default function Table({ table_name="Table", header_name="", headers=["header1", "header2", "header3"], table_data=[], refreshFunc, displayRefresh, paginationFunctions=[], searchFuncs=[], editDeleteFuncs=[], StudentFilters=[], insertForm=null }) {
 
     const [visibleInfoCard, setVisibleInfoCard] = useState(false);
     const [visibleStudentFilter, setVisibleStudentFilter] = useState(false);
@@ -62,7 +63,7 @@ export default function Table({ table_name="Table", header_name="", headers=["he
             </HeaderButton> */}
         </div>
 
-        <SearchBarComponent headers={headers} funcs={searchFuncs} StudentFilterVisibility={[visibleStudentFilter, setVisibleStudentFilter]} />
+        <SearchBarComponent headers={headers} funcs={searchFuncs} StudentFilterVisibility={[visibleStudentFilter, setVisibleStudentFilter]} insertForm={insertForm} />
 
         <TableComponent
             table_name={table_name}
@@ -83,7 +84,7 @@ export default function Table({ table_name="Table", header_name="", headers=["he
     )
 }
 
-function SearchBarComponent({headers=[], funcs=[], StudentFilterVisibility=[]}) {
+function SearchBarComponent({headers=[], funcs=[], StudentFilterVisibility=[], insertForm=null}) {
 
     return (
         <>
@@ -104,6 +105,15 @@ function SearchBarComponent({headers=[], funcs=[], StudentFilterVisibility=[]}) 
                         console.log('Filter button clicked');
                     }} />
                     </Button>    
+                )}
+
+                {insertForm && (
+                    <InsertForm
+                        insert_form_name={insertForm.name}
+                        fields={insertForm.fields}
+                        submitFunc={insertForm.submitFunc}
+                        avatarUpdate={insertForm.avatarUpdate}
+                    />
                 )}
                 
             </div>

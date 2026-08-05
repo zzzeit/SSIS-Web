@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useState } from 'react';
 import Table from '../page'
-import InsertForm from '../InsertForm'
 
 
 export default function Colleges() {
@@ -141,8 +140,6 @@ export default function Colleges() {
 
     return (
         <>
-            <InsertForm fields={[["Code: ", college_code, set_college_code], ["Name: ", college_name, set_college_name]]} submitFunc={submitForm} />
-            
             <Table 
                 table_name={tableName} 
                 header_name={"College Table"} 
@@ -153,6 +150,11 @@ export default function Colleges() {
                 paginationFunctions={[page, setPage, maxPage]} 
                 searchFuncs={[ascending, setAscending, searchValue, setSearchValue, searchBy, setSearchBy]} 
                 editDeleteFuncs={[ submitEditButton, deleteFunc ]}
+                insertForm={{
+                    name: 'Insert Form',
+                    fields: [["Code: ", college_code, set_college_code], ["Name: ", college_name, set_college_name]],
+                    submitFunc: submitForm
+                }}
                  />
         </>
     )

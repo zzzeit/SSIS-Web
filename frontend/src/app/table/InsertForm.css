@@ -1,19 +1,60 @@
-.insert {
-    /* background-color: var(--color-background); */
-    backdrop-filter: blur(3px);
-    border-top: 1px solid var(--border-color);
-    border-bottom: 1px solid var(--border-color);
-}
-
-.insert-header {
-    background-color: var(--border-color);
-    height: 35px;
+.add-entry-button {
     display: flex;
     align-items: center;
     justify-content: center;
+    width: 35px;
+    height: 35px;
+    margin-right: 10px;
+    border: none;
+    border-radius: 3px;
+    background-color: var(--color-emerald-600);
+    color: var(--button-foreground, #ffffff);
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
 }
 
-.insert-header label {
+.add-entry-button:hover {
+    background-color: var(--color-emerald-500);
+}
+
+.bg-pop-up-insert {
+    width: 100%;
+    height: 100%;
+    background-color: hsla(0, 0%, 9%, 0.187);
+    backdrop-filter: blur(5px);
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 999;
+}
+
+.pop-up-insert {
+    max-height: 80vh;
+    overflow-y: auto;
+    width: fit-content;
+    background-color: var(--color-background);
+    border: 1px dashed var(--border-color-2);
+    border-radius: 10px;
+    box-shadow: 0 0px 50px rgba(0, 0, 0, .6);
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1000;
+}
+
+.header-pop-up-insert {
+    height: 45px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding-left: 15px;
+}
+
+.header-pop-up-insert label {
     font-family: 'Courier New', Courier, monospace;
 }
 
@@ -27,9 +68,10 @@
     flex-direction: column;
     align-items: center;
     width: fit-content;
-    border: .1px dashed rgb(117, 117, 117);
-    border-radius: 7px;
-    background-color: var(--color-background);
+}
+
+.insert-inputs .avatar {
+    margin-top: 0px;
 }
 
 .insert-inputs div {
@@ -38,10 +80,6 @@
     justify-content: space-between; /* Ensure proper spacing */
     margin-top: 10px;
     width: 100%; /* Ensure the row takes full width */
-}
-
-.insert-inputs .avatar {
-    margin-top: 0px;
 }
 
 .insert-inputs div label {
@@ -62,14 +100,14 @@
     flex: 2;
 }
 
-.insert button {
+.insert-inputs button {
     margin-top: 10px;
     border-radius: 10px;
     background-color: var(--color-emerald-700);
     padding: 3px 5px;
 }
 
-.insert button:hover {
+.insert-inputs button:hover {
     background-color: var(--color-emerald-500);
     cursor: pointer;
 }

@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useState } from 'react';
 import Table from '../page'
-import InsertForm from '../InsertForm'
 
 
 export default function Programs() {
@@ -144,13 +143,26 @@ export default function Programs() {
 
     return (
         <>
-            <InsertForm insert_form_name='Add Program' fields={[
-                ["Code: ", program_code, set_program_code], 
-                ["Name: ", program_name, set_program_name],
-                ["College: ", program_college, set_program_college]
-            ]} submitFunc={submitForm} />
-            
-            <Table table_name={tableName} header_name={'Program Table'} headers={attributes} table_data={table_data} refreshFunc={updateTableData} displayRefresh={displayRefresh} paginationFunctions={[page, setPage, maxPage]} searchFuncs={[ascending, setAscending, searchValue, setSearchValue, searchBy, setSearchBy]} editDeleteFuncs={[submitEditButton, deleteFunc]} />
+            <Table 
+                table_name={tableName} 
+                header_name={'Program Table'} 
+                headers={attributes} 
+                table_data={table_data} 
+                refreshFunc={updateTableData} 
+                displayRefresh={displayRefresh} 
+                paginationFunctions={[page, setPage, maxPage]} 
+                searchFuncs={[ascending, setAscending, searchValue, setSearchValue, searchBy, setSearchBy]} 
+                editDeleteFuncs={[submitEditButton, deleteFunc]}
+                insertForm={{
+                    name: 'Add Program',
+                    fields: [
+                        ["Code: ", program_code, set_program_code], 
+                        ["Name: ", program_name, set_program_name],
+                        ["College: ", program_college, set_program_college]
+                    ],
+                    submitFunc: submitForm
+                }}
+            />
         </>
     )
 }
